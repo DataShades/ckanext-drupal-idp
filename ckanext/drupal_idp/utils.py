@@ -70,10 +70,6 @@ def session_cookie_name() -> str:
 
     """
     server_name = tk.request.environ["HTTP_HOST"].split(":")[0]
-
-    # TODO: remove
-    server_name = "yesser.local"
-
     hash = hashlib.sha256(six.ensure_binary(server_name)).hexdigest()[:32]
     name = f"SESS{hash}"
     if tk.config["ckan.site_url"].startswith("https"):

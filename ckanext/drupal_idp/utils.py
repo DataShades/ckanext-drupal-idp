@@ -130,7 +130,7 @@ def get_user_details(sid: str) -> Optional[Details]:
         return
     # check if session has username,
     # otherwise is unauthenticated user session
-    if user.name:
+    if user and user.name:
         return Details(user)
 
 

@@ -18,6 +18,7 @@ from ckan.exceptions import CkanConfigurationException
 
 CONFIG_DB_URL = "ckanext.drupal_idp.db_url"
 CONFIG_SYNCHRONIZATION_ENABLED = "ckanext.drupal_idp.synchronization.enabled"
+CONFIG_STATIC_HOST = "ckanext.drupal_idp.host"
 
 log = logging.getLogger(__name__)
 
@@ -59,6 +60,12 @@ def db_url() -> str:
         )
     return url
 
+def _get_host() -> str:
+    host = tk.config.get(CONFIG_STATIC_HOST)
+    if not host:
+        host = tk.request.environ["HTTP_HOST"].split(":")[0]
+    return host
+
 
 def session_cookie_name() -> str:
     """Compute name of the cookie that stores Drupal's SessionID.
@@ -69,7 +76,7 @@ def session_cookie_name() -> str:
             (does not include port)
 
     """
-    server_name = tk.request.environ["HTTP_HOST"].split(":")[0]
+    server_name = _get_host()
     hash = hashlib.sha256(six.ensure_binary(server_name)).hexdigest()[:32]
     name = f"SESS{hash}"
     if tk.config["ckan.site_url"].startswith("https"):

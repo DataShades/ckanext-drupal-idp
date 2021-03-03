@@ -54,6 +54,10 @@ None at present
 	# (optional, default: false).
     ckanext.drupal_idp.synchronization.enabled = true
 
+    # Configure hostname of the drupal instance statically. Usefull for local testing with
+    # manually added cookie from any accessible drupal instance
+    # (optional)
+    ckanext.drupal_idp.host = my.site.com
 
 ## Developer installation
 

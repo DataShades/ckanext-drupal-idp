@@ -5,6 +5,8 @@ import ckan.plugins.toolkit as tk
 
 
 import ckanext.drupal_idp.utils as utils
+import ckanext.drupal_idp.helpers as helpers
+
 
 log = logging.getLogger(__name__)
 
@@ -12,6 +14,12 @@ log = logging.getLogger(__name__)
 class DrupalIdpPlugin(plugins.SingletonPlugin):
     plugins.implements(plugins.IAuthenticator, inherit=True)
     plugins.implements(plugins.IConfigurer)
+    plugins.implements(plugins.ITemplateHelpers)
+
+    # ITemplateHelpers
+
+    def get_helpers(self):
+        return helpers.get_helpers()
 
     # IAuthenticator
 

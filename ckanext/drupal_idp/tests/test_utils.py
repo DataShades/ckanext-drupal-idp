@@ -33,7 +33,6 @@ class TestSynchronizationEnabled:
         assert not utils.is_synchronization_enabled()
 
     @pytest.mark.ckan_config(utils.CONFIG_SYNCHRONIZATION_ENABLED, "true")
-    @pytest.mark.usefixtures("ckan_config")
     def test_updated_value(self):
         assert utils.is_synchronization_enabled()
 
@@ -43,7 +42,6 @@ class TestDbUrl:
         assert utils.db_url()
 
     @pytest.mark.ckan_config(utils.CONFIG_DB_URL, "")
-    @pytest.mark.usefixtures("ckan_config")
     def test_exception_with_missing_config(self):
         with pytest.raises(CkanConfigurationException):
             utils.db_url()
@@ -54,7 +52,7 @@ class TestSessionCookieName:
     def test_http(self):
         assert (
             utils.session_cookie_name()
-            == "SESSeb97964bfaedb6fad496cc0746f6ab7b"
+            == "SESS49960de5880e8c687434170f6476605b"
         )
 
     @pytest.mark.usefixtures("with_request_context")
@@ -62,8 +60,16 @@ class TestSessionCookieName:
         monkeypatch.setitem(ckan_config, "ckan.site_url", "https://test.net")
         assert (
             utils.session_cookie_name()
-            == "SSESSeb97964bfaedb6fad496cc0746f6ab7b"
+            == "SSESS49960de5880e8c687434170f6476605b"
         )
+
+    @pytest.mark.ckan_config("ckanext.drupal_idp.host", "my.site.com")
+    def test_static_host(self):
+        assert (
+            utils.session_cookie_name()
+            == "SESSe181b034216cdf301d365b2fc8aa54db"
+        )
+
 
 
 def test_decode_sid():
@@ -102,8 +108,10 @@ class TestGetOrCreation:
         model.Session.commit()
 
         userdict = utils.get_or_create_from_details(details)
+        assert userdict["name"] != details_data["name"]
         assert userdict["name"] == "hello"
         user = model.User.get(userdict["id"])
+        assert user.email != details_data["email"]
         assert user.email == "hello@world"
 
         utils.synchronize(userdict, details)
@@ -122,3 +130,7 @@ class TestGetOrCreation:
             .count()
             == 1
         )
+
+    @pytest.mark.xfail
+    def test_plugin_extras_not_erased(self):
+        assert False

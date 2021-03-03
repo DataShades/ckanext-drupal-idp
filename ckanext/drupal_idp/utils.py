@@ -5,7 +5,7 @@ import hashlib
 import logging
 import six
 import secrets
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, TypedDict
 from operator import itemgetter
 
 import sqlalchemy as sa
@@ -25,11 +25,19 @@ log = logging.getLogger(__name__)
 DrupalId = int
 UserDict = Dict[str, Any]
 
+class DetailsData(TypedDict):
+    name: str
+    email: str
+    id: DrupalId
+
 
 class Details:
     _props = ("name", "email", "id")
+    name: str
+    email: str
+    id: DrupalId
 
-    def __init__(self, data):
+    def __init__(self, data: DetailsData):
         self.name, self.email, self.id = itemgetter(*self._props)(data)
 
     def __iter__(self):

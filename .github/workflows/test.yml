@@ -31,8 +31,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Install MySQL libs
-      shell: bash
-      run: apt update && apt install default-libmysqlclient-dev
+      run: apk update && apk install mariadb-dev
     - name: Install requirements
       # Install any extra requirements your extension has here (dev requirements, other extensions etc)
       run: |

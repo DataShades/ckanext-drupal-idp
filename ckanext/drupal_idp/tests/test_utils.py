@@ -2,7 +2,7 @@ import pytest
 
 import ckan.model as model
 import ckan.lib.munge as munge
-from ckan.exceptions import CkanConfigurationException
+
 
 import ckanext.drupal_idp.utils as utils
 
@@ -24,8 +24,29 @@ class TestDetails:
         assert userdict == {
             "email": details_data["email"],
             "name": munge.munge_name(details_data["name"]),
+            "sysadmin": False,
             "plugin_extras": {"drupal_idp": details_data},
         }
+
+    def test_sysadmin_ignored_by_default(self, details_data):
+        details_data["roles"].append(utils.DEFAULT_ADMIN_ROLE)
+        assert not utils.Details(details_data).is_sysadmin()
+
+    @pytest.mark.ckan_config(utils.CONFIG_INHERIT_ADMIN_ROLE, "true")
+    def test_sysadmin(self, details_data):
+        assert not utils.Details(details_data).is_sysadmin()
+        details_data["roles"].append("not-an-admin")
+        assert not utils.Details(details_data).is_sysadmin()
+        details_data["roles"].append(utils.DEFAULT_ADMIN_ROLE)
+        assert utils.Details(details_data).is_sysadmin()
+
+    @pytest.mark.ckan_config(utils.CONFIG_INHERIT_ADMIN_ROLE, "true")
+    @pytest.mark.ckan_config(utils.CONFIG_ADMIN_ROLE_NAME, "custom-admin")
+    def test_sysadmin_with_custom_role(self, details_data):
+        details_data["roles"].append(utils.DEFAULT_ADMIN_ROLE)
+        assert not utils.Details(details_data).is_sysadmin()
+        details_data["roles"].append("custom-admin")
+        assert utils.Details(details_data).is_sysadmin()
 
 
 class TestSynchronizationEnabled:
@@ -35,16 +56,6 @@ class TestSynchronizationEnabled:
     @pytest.mark.ckan_config(utils.CONFIG_SYNCHRONIZATION_ENABLED, "true")
     def test_updated_value(self):
         assert utils.is_synchronization_enabled()
-
-
-class TestDbUrl:
-    def test_default_value(self):
-        assert utils.db_url()
-
-    @pytest.mark.ckan_config(utils.CONFIG_DB_URL, "")
-    def test_exception_with_missing_config(self):
-        with pytest.raises(CkanConfigurationException):
-            utils.db_url()
 
 
 class TestSessionCookieName:
@@ -69,7 +80,6 @@ class TestSessionCookieName:
             utils.session_cookie_name()
             == "SESSe181b034216cdf301d365b2fc8aa54db"
         )
-
 
 
 def test_decode_sid():

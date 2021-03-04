@@ -6,6 +6,7 @@ import ckan.plugins.toolkit as tk
 
 import ckanext.drupal_idp.utils as utils
 import ckanext.drupal_idp.helpers as helpers
+import ckanext.drupal_idp.drupal as drupal
 
 
 log = logging.getLogger(__name__)
@@ -51,4 +52,4 @@ class DrupalIdpPlugin(plugins.SingletonPlugin):
     def update_config(self, config_):
         # If DB config is missing, the following line will raise
         # CkaneConfigurationException and won't allow server to start
-        utils.db_url()
+        drupal.db_url()

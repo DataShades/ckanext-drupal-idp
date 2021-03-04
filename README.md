@@ -55,6 +55,15 @@ To install ckanext-drupal-idp:
     # (optional)
     ckanext.drupal_idp.host = my.site.com
 
+    # Whether to set sysadmin flag on the user who has Drupal's admin role
+    # (optional, default: false)
+    ckanext.drupal_idp.admin_role.inherit = true
+
+    # Name of the role that grants sysadmin status
+    # (optional, default: administrator)
+    ckanext.drupal_idp.admin_role.name = administrator
+
+
 ## Developer installation
 
 To install ckanext-drupal-idp for development, activate your CKAN virtualenv and

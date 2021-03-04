@@ -5,49 +5,65 @@ import hashlib
 import logging
 import six
 import secrets
-from typing import Any, Dict, Optional, TypedDict
-from operator import itemgetter
+from typing import Any, Dict, List, Optional, TypedDict
 
-import sqlalchemy as sa
-from sqlalchemy.exc import OperationalError
 
 import ckan.model as model
 import ckan.plugins.toolkit as tk
 import ckan.lib.munge as munge
-from ckan.exceptions import CkanConfigurationException
 
 CONFIG_DB_URL = "ckanext.drupal_idp.db_url"
 CONFIG_SYNCHRONIZATION_ENABLED = "ckanext.drupal_idp.synchronization.enabled"
 CONFIG_STATIC_HOST = "ckanext.drupal_idp.host"
+CONFIG_INHERIT_ADMIN_ROLE = "ckanext.drupal_idp.admin_role.inherit"
+CONFIG_ADMIN_ROLE_NAME = "ckanext.drupal_idp.admin_role.name"
+CONFIG_DRUPAL_VERSION = "ckanext.drupal_idp.drupal.version"
+
+DEFAULT_ADMIN_ROLE = "administrator"
+DEFAULT_DRUPAL_VERSION = "9"
 
 log = logging.getLogger(__name__)
 
 DrupalId = int
 UserDict = Dict[str, Any]
 
+
 class DetailsData(TypedDict):
     name: str
     email: str
     id: DrupalId
+    roles: List[str]
 
 
 class Details:
-    _props = ("name", "email", "id")
+    _props = ("name", "email", "id", "roles")
     name: str
     email: str
     id: DrupalId
+    roles: List[str] = []
 
     def __init__(self, data: DetailsData):
-        self.name, self.email, self.id = itemgetter(*self._props)(data)
+        for k, v in data.items():
+            if k not in self._props:
+                continue
+            setattr(self, k, v)
 
     def __iter__(self):
         for prop in self._props:
             yield prop, getattr(self, prop)
 
+    def is_sysadmin(self):
+        return (
+            tk.asbool(tk.config.get(CONFIG_INHERIT_ADMIN_ROLE))
+            and tk.config.get(CONFIG_ADMIN_ROLE_NAME, DEFAULT_ADMIN_ROLE)
+            in self.roles
+        )
+
     def make_userdict(self):
         return {
             "email": self.email,
             "name": munge.munge_name(self.name),
+            "sysadmin": self.is_sysadmin(),
             "plugin_extras": {"drupal_idp": dict(self)},
         }
 
@@ -59,14 +75,6 @@ def is_synchronization_enabled() -> bool:
 def _make_password():
     return secrets.token_urlsafe(60)
 
-
-def db_url() -> str:
-    url = tk.config.get(CONFIG_DB_URL)
-    if not url:
-        raise CkanConfigurationException(
-            f"drupal_idp plugin requires {CONFIG_DB_URL} config option."
-        )
-    return url
 
 def _get_host() -> str:
     host = tk.config.get(CONFIG_STATIC_HOST)
@@ -123,30 +131,21 @@ def decode_sid(cookie_sid: str) -> str:
 
 
 def get_user_details(sid: str) -> Optional[Details]:
-    """Fetch user data from Drupal's database.
+    """Fetch user data from Drupal's database."""
+    import ckanext.drupal_idp.drupal as drupal
 
-    Method was written according to D9's table structure.
-
-    """
-    engine = sa.create_engine(db_url())
-    try:
-        user = engine.execute(
-            """
-        SELECT d.name name, d.mail email, d.uid id
-        FROM sessions s
-        JOIN users_field_data d
-        ON s.uid = d.uid
-        WHERE s.sid = %s
-        """,
-            [sid],
-        ).first()
-    except OperationalError:
-        log.exception("Cannot get a user from Drupal's database")
-        return
+    adapter = drupal.get_adapter(
+        tk.config.get(CONFIG_DRUPAL_VERSION, DEFAULT_DRUPAL_VERSION)
+    )
+    user = adapter.get_user_by_sid(sid)
     # check if session has username,
     # otherwise is unauthenticated user session
-    if user and user.name:
-        return Details(user)
+    if not user:
+        return
+    details_data = DetailsData(**user)
+    roles = adapter.get_user_roles(user.id)
+    details_data["roles"] = roles
+    return Details(details_data)
 
 
 def _get_by_id(id: DrupalId) -> Optional[UserDict]:
@@ -225,7 +224,10 @@ def synchronize(user: UserDict, details: Details) -> UserDict:
             )
         userobj.name = details.name
         model.Session.commit()
-    if userobj.email != details.email:
+    if (
+        userobj.email != details.email
+        or userobj.sysadmin != details.is_sysadmin()
+    ):
         log.info(f"Synchronizing user {details.name}")
         user = _attach_details(user["id"], details)
     return user

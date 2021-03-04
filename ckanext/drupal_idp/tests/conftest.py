@@ -8,7 +8,12 @@ import ckanext.drupal_idp.utils as utils
 
 @pytest.fixture
 def details_data():
-    return {"name": "test", "email": "test@example.net", "id": 123}
+    return {
+        "name": "test",
+        "email": "test@example.net",
+        "id": 123,
+        "roles": [],
+    }
 
 
 @pytest.fixture

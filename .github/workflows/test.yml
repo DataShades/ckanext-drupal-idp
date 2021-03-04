@@ -3,6 +3,7 @@ on: [push, pull_request]
 jobs:
   test:
     runs-on: ubuntu-latest
+    shell: bash
     container:
       # The CKAN version tag of the Solr and Postgres containers should match
       # the one of the container the tests run on.
@@ -31,7 +32,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Install MySQL libs
-      run: sudo apt-get install default-libmysqlclient-dev
+      run: apt update && apt install default-libmysqlclient-dev
     - name: Install requirements
       # Install any extra requirements your extension has here (dev requirements, other extensions etc)
       run: |

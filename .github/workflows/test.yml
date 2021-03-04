@@ -31,8 +31,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Install MySQL libs
-      run: |
-        apt-get install default-libmysqlclient-dev
+      run: sudo apt-get install default-libmysqlclient-dev
     - name: Install requirements
       # Install any extra requirements your extension has here (dev requirements, other extensions etc)
       run: |

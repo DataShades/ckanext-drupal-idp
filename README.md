@@ -40,10 +40,6 @@ To install ckanext-drupal-idp:
 
 ## Config settings
 
-None at present
-
-**TODO:** Document any optional config settings here. For example:
-
 	# Defines database used by the Drupal application
 	# (mandatory).
 	ckanext.drupal_idp.db_url = mysql://drupal_user:drupal_pass@127.0.0.1:3306/db_name
@@ -74,4 +70,4 @@ do:
 
 To run the tests, do:
 
-    pytest --ckan-ini=test.ini
+    pytest --ckan-ini=test.ini ckanext/drupal_idp

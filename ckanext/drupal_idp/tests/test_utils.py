@@ -97,7 +97,7 @@ class TestGetOrCreation:
         assert user.plugin_extras["drupal_idp"] == details_data
 
 
-@pytest.mark.usefixtures("clean_db", "with_request_context")
+@pytest.mark.usefixtures("clean_db")
 class TestGetOrCreation:
     def test_user_sync(self, details_data, monkeypatch, ckan_config):
         details = utils.Details(details_data)

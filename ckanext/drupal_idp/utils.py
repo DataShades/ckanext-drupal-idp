@@ -191,11 +191,11 @@ def _attach_details(id: str, details: Details) -> UserDict:
     Raises:
     ValidationError if email or username is not unique
     """
-    user = details.make_userdict()
-    user["id"] = id
-
     admin = tk.get_action("get_site_user")({"ignore_auth": True}, {})
-    user = tk.get_action("user_patch")({"user": admin["name"]}, user)
+    user = tk.get_action("user_show")({"user": admin["name"]}, {"id": id})
+    user.update(details.make_userdict())
+    # user_patch is not available in v2.9
+    user = tk.get_action("user_update")({"user": admin["name"]}, user)
     return user
 
 

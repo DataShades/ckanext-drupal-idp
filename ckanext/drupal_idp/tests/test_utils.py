@@ -74,7 +74,7 @@ class TestSessionCookieName:
             == "SSESS49960de5880e8c687434170f6476605b"
         )
 
-    @pytest.mark.ckan_config("ckanext.drupal_idp.host", "my.site.com")
+    @pytest.mark.ckan_config(utils.CONFIG_STATIC_HOST, "my.site.com")
     def test_static_host(self):
         assert (
             utils.session_cookie_name()
@@ -109,6 +109,18 @@ class TestGetOrCreation:
 
 @pytest.mark.usefixtures("clean_db")
 class TestGetOrCreation:
+
+    def test_default_native_id(self, details_data):
+        details = utils.Details(details_data)
+        userdict = utils.get_or_create_from_details(details)
+        assert userdict["id"] != details_data["id"]
+
+    @pytest.mark.ckan_config(utils.CONFIG_SAME_ID, "true")
+    def test_same_id(self, details_data):
+        details = utils.Details(details_data)
+        userdict = utils.get_or_create_from_details(details)
+        assert userdict["id"] == str(details_data["id"])
+
     def test_user_sync(self, details_data, monkeypatch, ckan_config):
         details = utils.Details(details_data)
         userdict = utils.get_or_create_from_details(details)

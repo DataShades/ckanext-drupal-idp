@@ -18,6 +18,7 @@ CONFIG_STATIC_HOST = "ckanext.drupal_idp.host"
 CONFIG_INHERIT_ADMIN_ROLE = "ckanext.drupal_idp.admin_role.inherit"
 CONFIG_ADMIN_ROLE_NAME = "ckanext.drupal_idp.admin_role.name"
 CONFIG_DRUPAL_VERSION = "ckanext.drupal_idp.drupal.version"
+CONFIG_SAME_ID = "ckanext.drupal_idp.same_id"
 
 DEFAULT_ADMIN_ROLE = "administrator"
 DEFAULT_DRUPAL_VERSION = "9"
@@ -178,6 +179,8 @@ def _create_from_details(details: Details) -> UserDict:
     """
     user = details.make_userdict()
     user["password"] = _make_password()
+    if tk.asbool(tk.config.get(CONFIG_SAME_ID)):
+        user["id"] = details.id
 
     admin = tk.get_action("get_site_user")({"ignore_auth": True}, {})
     user = tk.get_action("user_create")({"user": admin["name"]}, user)

@@ -44,7 +44,7 @@ To install ckanext-drupal-idp:
 	# (mandatory).
 	ckanext.drupal_idp.db_url = mysql://drupal_user:drupal_pass@127.0.0.1:3306/db_name
 
-	# Whether to make an attempt to synchronize user's email and name everytime
+	# Whether to make an attempt to synchronize user's details everytime
     # session is used. This may result in unauthenticated session if new name or email
     # already present in CKAN database
 	# (optional, default: false).
@@ -62,6 +62,10 @@ To install ckanext-drupal-idp:
     # Name of the role that grants sysadmin status
     # (optional, default: administrator)
     ckanext.drupal_idp.admin_role.name = administrator
+
+    # When user created, set his ID to the same value as DrupalID
+    # (optional, default: false)
+    ckanext.drupal_idp.same_id = true
 
 
 ## Developer installation

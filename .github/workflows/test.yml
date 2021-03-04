@@ -30,6 +30,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - name: Install MySQL libs
+      run: |
+        apt install default-libmysqlclient-dev
     - name: Install requirements
       # Install any extra requirements your extension has here (dev requirements, other extensions etc)
       run: |
@@ -45,4 +48,3 @@ jobs:
         ckan -c test.ini db init
     - name: Run tests
       run: pytest --ckan-ini=test.ini --cov=ckanext.drupal_idp --disable-warnings ckanext/drupal_idp
-

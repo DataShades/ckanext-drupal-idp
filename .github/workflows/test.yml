@@ -3,7 +3,6 @@ on: [push, pull_request]
 jobs:
   test:
     runs-on: ubuntu-latest
-    shell: bash
     container:
       # The CKAN version tag of the Solr and Postgres containers should match
       # the one of the container the tests run on.

@@ -31,7 +31,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Install MySQL libs
-      run: apk update && apk install mariadb-dev
+      run: apk update && apk add mariadb-dev
     - name: Install requirements
       # Install any extra requirements your extension has here (dev requirements, other extensions etc)
       run: |

@@ -1,5 +1,5 @@
 from __future__ import annotations
-
+import dataclasses
 import base64
 import hashlib
 import logging
@@ -36,22 +36,15 @@ class DetailsData(TypedDict):
     roles: List[str]
 
 
+@dataclasses.dataclass
 class Details:
-    _props = ("name", "email", "id", "roles")
     name: str
     email: str
     id: DrupalId
-    roles: List[str] = []
-
-    def __init__(self, data: DetailsData):
-        for k, v in data.items():
-            if k not in self._props:
-                continue
-            setattr(self, k, v)
+    roles: List[str] = dataclasses.field(default_factory=list)
 
     def __iter__(self):
-        for prop in self._props:
-            yield prop, getattr(self, prop)
+        yield from self.__dict__.items()
 
     def is_sysadmin(self):
         return (
@@ -146,7 +139,7 @@ def get_user_details(sid: str) -> Optional[Details]:
     details_data = DetailsData(**user)
     roles = adapter.get_user_roles(user.id)
     details_data["roles"] = roles
-    return Details(details_data)
+    return Details(**details_data)
 
 
 def _get_by_id(id: DrupalId) -> Optional[UserDict]:

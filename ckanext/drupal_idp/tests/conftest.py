@@ -25,5 +25,5 @@ def with_no_drupal_session(monkeypatch):
 
 @pytest.fixture
 def with_drupal_session(monkeypatch, details_data):
-    func = mock.Mock(return_value=Details(details_data))
+    func = mock.Mock(return_value=Details(**details_data))
     monkeypatch.setattr(utils, "get_user_details", func)

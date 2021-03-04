@@ -9,16 +9,16 @@ import ckanext.drupal_idp.utils as utils
 
 class TestDetails:
     def test_init(self, details_data):
-        details = utils.Details(details_data)
+        details = utils.Details(**details_data)
         for prop in details_data:
             assert getattr(details, prop) == details_data[prop]
 
     def test_into_dict(self, details_data):
-        details = utils.Details(details_data)
+        details = utils.Details(**details_data)
         assert dict(details) == details_data
 
     def test_into_user(self, details_data):
-        details = utils.Details(details_data)
+        details = utils.Details(**details_data)
         userdict = details.make_userdict()
 
         assert userdict == {
@@ -30,23 +30,23 @@ class TestDetails:
 
     def test_sysadmin_ignored_by_default(self, details_data):
         details_data["roles"].append(utils.DEFAULT_ADMIN_ROLE)
-        assert not utils.Details(details_data).is_sysadmin()
+        assert not utils.Details(**details_data).is_sysadmin()
 
     @pytest.mark.ckan_config(utils.CONFIG_INHERIT_ADMIN_ROLE, "true")
     def test_sysadmin(self, details_data):
-        assert not utils.Details(details_data).is_sysadmin()
+        assert not utils.Details(**details_data).is_sysadmin()
         details_data["roles"].append("not-an-admin")
-        assert not utils.Details(details_data).is_sysadmin()
+        assert not utils.Details(**details_data).is_sysadmin()
         details_data["roles"].append(utils.DEFAULT_ADMIN_ROLE)
-        assert utils.Details(details_data).is_sysadmin()
+        assert utils.Details(**details_data).is_sysadmin()
 
     @pytest.mark.ckan_config(utils.CONFIG_INHERIT_ADMIN_ROLE, "true")
     @pytest.mark.ckan_config(utils.CONFIG_ADMIN_ROLE_NAME, "custom-admin")
     def test_sysadmin_with_custom_role(self, details_data):
         details_data["roles"].append(utils.DEFAULT_ADMIN_ROLE)
-        assert not utils.Details(details_data).is_sysadmin()
+        assert not utils.Details(**details_data).is_sysadmin()
         details_data["roles"].append("custom-admin")
-        assert utils.Details(details_data).is_sysadmin()
+        assert utils.Details(**details_data).is_sysadmin()
 
 
 class TestSynchronizationEnabled:
@@ -100,7 +100,7 @@ class TestFixtures:
 class TestGetOrCreation:
     def test_user_created(self, details_data):
         assert model.User.get(details_data["name"]) is None
-        details = utils.Details(details_data)
+        details = utils.Details(**details_data)
         utils.get_or_create_from_details(details)
         user = model.User.get(details_data["name"])
         assert user.name == details_data["name"]
@@ -111,18 +111,18 @@ class TestGetOrCreation:
 class TestGetOrCreation:
 
     def test_default_native_id(self, details_data):
-        details = utils.Details(details_data)
+        details = utils.Details(**details_data)
         userdict = utils.get_or_create_from_details(details)
         assert userdict["id"] != details_data["id"]
 
     @pytest.mark.ckan_config(utils.CONFIG_SAME_ID, "true")
     def test_same_id(self, details_data):
-        details = utils.Details(details_data)
+        details = utils.Details(**details_data)
         userdict = utils.get_or_create_from_details(details)
         assert userdict["id"] == str(details_data["id"])
 
     def test_user_sync(self, details_data, monkeypatch, ckan_config):
-        details = utils.Details(details_data)
+        details = utils.Details(**details_data)
         userdict = utils.get_or_create_from_details(details)
         user = model.User.get(userdict["id"])
         user.email = "hello@world"

@@ -13,10 +13,6 @@ class TestDetails:
         for prop in details_data:
             assert getattr(details, prop) == details_data[prop]
 
-    def test_into_dict(self, details_data):
-        details = utils.Details(**details_data)
-        assert dict(details) == details_data
-
     def test_into_user(self, details_data):
         details = utils.Details(**details_data)
         userdict = details.make_userdict()

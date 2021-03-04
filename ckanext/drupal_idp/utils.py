@@ -43,9 +43,6 @@ class Details:
     id: DrupalId
     roles: List[str] = dataclasses.field(default_factory=list)
 
-    def __iter__(self):
-        yield from self.__dict__.items()
-
     def is_sysadmin(self):
         return (
             tk.asbool(tk.config.get(CONFIG_INHERIT_ADMIN_ROLE))
@@ -58,7 +55,7 @@ class Details:
             "email": self.email,
             "name": munge.munge_name(self.name),
             "sysadmin": self.is_sysadmin(),
-            "plugin_extras": {"drupal_idp": dict(self)},
+            "plugin_extras": {"drupal_idp": dataclasses.asdict(self)},
         }
 
 

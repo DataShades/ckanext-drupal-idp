@@ -68,6 +68,34 @@ To install ckanext-drupal-idp:
     ckanext.drupal_idp.same_id = true
 
 
+## API actions
+
+#### `drupal_idp_user_show`
+
+##### Parameters:
+
+    id: (mandatory) DrupalID of the user
+
+##### Details:
+
+Accepts mandatory `id`(DrupalID). The rest of parameters will be
+passed to underlying `user_show`.
+
+---
+
+## Auth functions
+
+#### `drupal_idp_user_show`
+
+##### Details:
+
+Checks whether user is allowed to get user details by DrupalID. At the
+moment only sysadmin can pass this check.
+
+---
+
+## CLI
+
 ## Developer installation
 
 To install ckanext-drupal-idp for development, activate your CKAN virtualenv and

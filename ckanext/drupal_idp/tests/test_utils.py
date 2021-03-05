@@ -149,6 +149,14 @@ class TestGetOrCreation:
             == 1
         )
 
-    @pytest.mark.xfail
-    def test_plugin_extras_not_erased(self):
-        assert False
+    def test_plugin_extras_not_erased(self, details_data):
+        details = utils.Details(**details_data)
+        userdict = utils.get_or_create_from_details(details)
+        user = model.User.get(userdict["id"])
+        user.plugin_extras = {
+            "test": {"key": "value"}
+        }
+        utils.synchronize(userdict, details, force=True)
+        user = model.User.get(userdict["id"])
+        assert "drupal_idp" in user.plugin_extras
+        assert "test" in user.plugin_extras

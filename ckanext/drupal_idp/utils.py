@@ -139,16 +139,6 @@ def get_user_details(sid: str) -> Optional[Details]:
     return Details(**details_data)
 
 
-def _get_by_id(id: DrupalId) -> Optional[UserDict]:
-    user = (
-        model.Session.query(model.User.id)
-        .filter(model.User.plugin_extras["drupal_idp"]["id"].astext == str(id))
-        .one_or_none()
-    )
-    if user is None:
-        return
-    return tk.get_action("user_show")({"ignore_auth": True}, {"id": user.id})
-
 
 def _get_by_email(email: str) -> Optional[UserDict]:
     user = (
@@ -184,8 +174,15 @@ def _attach_details(id: str, details: Details) -> UserDict:
     ValidationError if email or username is not unique
     """
     admin = tk.get_action("get_site_user")({"ignore_auth": True}, {})
-    user = tk.get_action("user_show")({"user": admin["name"]}, {"id": id})
-    user.update(details.make_userdict())
+    user = tk.get_action("user_show")({"user": admin["name"]}, {"id": id, "include_plugin_extras": True})
+
+    # do not drop extras that were set by other plugins
+    extras = user.pop('plugin_extras', {})
+    patch = details.make_userdict()
+    extras.update(patch['plugin_extras'])
+    patch['plugin_extras'] = extras
+    user.update(patch)
+
     # user_patch is not available in v2.9
     user = tk.get_action("user_update")({"user": admin["name"]}, user)
     return user
@@ -197,17 +194,16 @@ def get_or_create_from_details(details: Details) -> UserDict:
     Raises:
     ValidationError if email or username is not unique
     """
-    user = _get_by_id(details.id)
-    if user:
-        return user
+    try:
+        user = tk.get_action("drupal_idp_user_show")({"ignore_auth": True}, {"id": details.id})
+    except tk.ObjectNotFound:
+        user = _get_by_email(details.email)
+        if user:
+            user = _attach_details(user["id"], details)
+    return user or _create_from_details(details)
 
-    user = _get_by_email(details.email)
-    if user:
-        return _attach_details(user["id"], details)
-    return _create_from_details(details)
 
-
-def synchronize(user: UserDict, details: Details) -> UserDict:
+def synchronize(user: UserDict, details: Details, force: bool = False) -> UserDict:
     userobj = model.User.get(user["id"])
     if userobj.name != details.name:
         log.info(f"Synchronizing user {userobj.name} -> {details.name}")
@@ -218,6 +214,7 @@ def synchronize(user: UserDict, details: Details) -> UserDict:
         userobj.name = details.name
         model.Session.commit()
     if (
+        force or
         userobj.email != details.email
         or userobj.sysadmin != details.is_sysadmin()
     ):

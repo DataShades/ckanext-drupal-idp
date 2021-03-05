@@ -5,7 +5,7 @@ import ckan.plugins.toolkit as tk
 
 from ckanext.drupal_idp.logic import action
 from ckanext.drupal_idp.logic import auth
-from ckanext.drupal_idp import helpers, utils, drupal
+from ckanext.drupal_idp import helpers, utils, drupal, cli
 
 
 
@@ -18,6 +18,12 @@ class DrupalIdpPlugin(plugins.SingletonPlugin):
     plugins.implements(plugins.ITemplateHelpers)
     plugins.implements(plugins.IActions)
     plugins.implements(plugins.IAuthFunctions)
+    plugins.implements(plugins.IClick)
+
+    # IClick
+
+    def get_commands(self):
+        return cli.get_commands()
 
     # IActions
 

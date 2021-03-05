@@ -96,6 +96,12 @@ moment only sysadmin can pass this check.
 
 ## CLI
 
+    * drupal-idp - ckanext-drupal-idp CLI
+      * user - User management
+        * list - List all users with DrupalID
+
+---
+
 ## Developer installation
 
 To install ckanext-drupal-idp for development, activate your CKAN virtualenv and

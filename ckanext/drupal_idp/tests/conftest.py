@@ -1,5 +1,5 @@
 from ckanext.drupal_idp.utils import Details
-import mock
+import unittest.mock as mock
 
 import pytest
 

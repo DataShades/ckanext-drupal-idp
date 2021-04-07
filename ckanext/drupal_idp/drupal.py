@@ -48,8 +48,8 @@ class Drupal9(BaseDrupal):
             """,
                 [sid],
             ).first()
-        except OperationalError:
-            log.exception("Cannot get a user from Drupal's database")
+        except OperationalError as e:
+            log.error("Cannot get a user from Drupal's database: %s", e)
             return
         # check if session has username,
         # otherwise is unauthenticated user session

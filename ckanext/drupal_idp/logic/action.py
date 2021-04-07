@@ -1,6 +1,5 @@
 from typing import Callable, Dict
 
-import ckan.model as model
 import ckan.plugins.toolkit as tk
 
 import ckanext.drupal_idp.utils as utils
@@ -19,11 +18,12 @@ def get_actions():
 @action
 @tk.side_effect_free
 def user_show(context, data_dict):
-    tk.check_access('drupal_idp_user_show', context, data_dict)
+    tk.check_access('drupal_idp_user_show', dict(context), data_dict)
     id: utils.DrupalId = tk.get_or_bust(data_dict, 'id')
+    User = context['model'].User
     user = (
-        model.Session.query(model.User.id)
-        .filter(model.User.plugin_extras["drupal_idp"]["id"].astext == str(id))
+        context['session'].query(User.id)
+        .filter(User.plugin_extras["drupal_idp"]["id"].astext == str(id))
         .one_or_none()
     )
     if user is None:

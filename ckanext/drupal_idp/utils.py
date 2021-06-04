@@ -177,7 +177,7 @@ def _attach_details(id: str, details: Details) -> UserDict:
     user = tk.get_action("user_show")({"user": admin["name"]}, {"id": id, "include_plugin_extras": True})
 
     # do not drop extras that were set by other plugins
-    extras = user.pop('plugin_extras', {})
+    extras = user.pop('plugin_extras', None) or {}
     patch = details.make_userdict()
     extras.update(patch['plugin_extras'])
     patch['plugin_extras'] = extras

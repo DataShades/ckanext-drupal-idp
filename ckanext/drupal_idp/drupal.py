@@ -40,7 +40,7 @@ class Drupal9(BaseDrupal):
         try:
             user = self.engine.execute(
                 """
-            SELECT d.name name, d.mail email, d.uid id
+            SELECT d.name "name", d.mail email, d.uid id
             FROM sessions s
             JOIN users_field_data d
             ON s.uid = d.uid
@@ -59,7 +59,7 @@ class Drupal9(BaseDrupal):
     def get_user_roles(self, uid: utils.DrupalId) -> List[str]:
         query = self.engine.execute(
             """
-                 SELECT roles_target_id name
+                 SELECT roles_target_id "name"
                  FROM user__roles
                  WHERE bundle = 'user' AND entity_id = %s
                  """,

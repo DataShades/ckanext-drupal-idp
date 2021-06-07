@@ -17,13 +17,13 @@ To install ckanext-drupal-idp:
 
 1. Activate your CKAN virtual environment, for example:
 
-     . /usr/lib/ckan/default/bin/activate
+		. /usr/lib/ckan/default/bin/activate
 
 2. Clone the source and install it on the virtualenv
 
-    git clone https://github.com/DataShades/ckanext-drupal-idp.git
-    cd ckanext-drupal-idp
-    pip install -e .
+		git clone https://github.com/DataShades/ckanext-drupal-idp.git
+		cd ckanext-drupal-idp
+		pip install -e .
 
 3. Add `drupal-idp` to the `ckan.plugins` setting in your CKAN
    config file (by default the config file is located at
@@ -31,42 +31,42 @@ To install ckanext-drupal-idp:
 
 4. Configure Drupal's DB:
 
-    ckanext.drupal_idp.db_url = <URL>
+		ckanext.drupal_idp.db_url = <URL>
 
 4. Restart CKAN. For example if you've deployed CKAN with Apache on Ubuntu:
 
-     sudo service apache2 reload
+		sudo service apache2 reload
 
 
 ## Config settings
 
+	# ckanext-drupal-idp
 	# Defines database used by the Drupal application
 	# (mandatory).
 	ckanext.drupal_idp.db_url = mysql://drupal_user:drupal_pass@127.0.0.1:3306/db_name
 
 	# Whether to make an attempt to synchronize user's details everytime
-    # session is used. This may result in unauthenticated session if new name or email
-    # already present in CKAN database
+	# session is used. This may result in unauthenticated session if new name or email
+	# already present in CKAN database
 	# (optional, default: false).
-    ckanext.drupal_idp.synchronization.enabled = true
+	ckanext.drupal_idp.synchronization.enabled = true
 
-    # Configure hostname of the drupal instance statically. Usefull for local testing with
-    # manually added cookie from any accessible drupal instance
-    # (optional)
-    ckanext.drupal_idp.host = my.site.com
+	# Configure hostname of the drupal instance statically. Usefull for local testing with
+	# manually added cookie from any accessible drupal instance
+	# (optional)
+	ckanext.drupal_idp.host = my.site.com
 
-    # Whether to set sysadmin flag on the user who has Drupal's admin role
-    # (optional, default: false)
-    ckanext.drupal_idp.admin_role.inherit = true
+	# Whether to set sysadmin flag on the user who has Drupal's admin role
+	# (optional, default: false)
+	ckanext.drupal_idp.admin_role.inherit = true
 
-    # Name of the role that grants sysadmin status
-    # (optional, default: administrator)
-    ckanext.drupal_idp.admin_role.name = administrator
+	# Name of the role that grants sysadmin status
+	# (optional, default: administrator)
+	ckanext.drupal_idp.admin_role.name = administrator
 
-    # When user created, set his ID to the same value as DrupalID
-    # (optional, default: false)
-    ckanext.drupal_idp.same_id = true
-
+	# When user created, set his ID to the same value as DrupalID
+	# (optional, default: false)
+	ckanext.drupal_idp.same_id = true
 
 ## API actions
 

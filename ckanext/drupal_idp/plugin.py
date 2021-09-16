@@ -48,10 +48,12 @@ class DrupalIdpPlugin(plugins.SingletonPlugin):
         We need to convert this to represent the ckan user."""
         cookie_sid = tk.request.cookies.get(utils.session_cookie_name())
         if not cookie_sid:
+            log.debug("No session cookie found")
             return
         sid = utils.decode_sid(cookie_sid)
         details = utils.get_user_details(sid)
         if not details:
+            log.debug("No user details for SID %s", sid)
             return
         try:
             user = utils.get_or_create_from_details(details)

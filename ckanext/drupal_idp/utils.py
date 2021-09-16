@@ -5,6 +5,7 @@ import hashlib
 import logging
 import six
 import secrets
+from urllib.parse import unquote
 from typing import Any, Dict, List, Optional, TypedDict
 
 
@@ -88,6 +89,7 @@ def session_cookie_name() -> str:
     name = f"SESS{hash}"
     if tk.config["ckan.site_url"].startswith("https"):
         name = "S" + name
+    log.debug("Expected session-cookie name: %s", name)
     return name
 
 
@@ -102,13 +104,15 @@ def decode_sid(cookie_sid: str) -> str:
 
     Algorythm:
     - get cookie value
+    - url-unquote safe value(it's a cookie, some characters are encoded)
     - sha256 it
     - base64 it
     - replace pluses and slashes
     - strip out `=`-paddings
 
     """
-    sha_hash = hashlib.sha256(six.ensure_binary(cookie_sid)).digest()
+    unquoted = unquote(cookie_sid)
+    sha_hash = hashlib.sha256(six.ensure_binary(unquoted)).digest()
     base64_hash = base64.encodebytes(sha_hash)
     trans_rules = str.maketrans(
         {

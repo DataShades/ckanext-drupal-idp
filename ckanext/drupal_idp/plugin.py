@@ -7,6 +7,8 @@ from ckanext.drupal_idp.logic import action
 from ckanext.drupal_idp.logic import auth
 from ckanext.drupal_idp import helpers, utils, drupal, cli
 
+CONFIG_FOCE_SYNC = "ckanext.drupal_idp.synchronization.force"
+DEFAULT_FORCE_SYNC = False
 
 
 log = logging.getLogger(__name__)
@@ -58,7 +60,8 @@ class DrupalIdpPlugin(plugins.SingletonPlugin):
         try:
             user = utils.get_or_create_from_details(details)
             if utils.is_synchronization_enabled():
-                user = utils.synchronize(user, details)
+                force = tk.asbool(tk.config.get(CONFIG_FOCE_SYNC, DEFAULT_FORCE_SYNC))
+                user = utils.synchronize(user, details, force)
         except tk.ValidationError as e:
             log.error(
                 f"Cannot create user {details.name}<{details.email}>:"

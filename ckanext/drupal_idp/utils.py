@@ -203,7 +203,7 @@ def get_or_create_from_details(details: Details) -> UserDict:
     except tk.ObjectNotFound:
         user = _get_by_email(details.email)
         if user:
-            user = _attach_details(user["id"], details)
+            user = synchronize(user, details)
     return user or _create_from_details(details)
 
 

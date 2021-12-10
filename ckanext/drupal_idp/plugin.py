@@ -59,15 +59,24 @@ class DrupalIdpPlugin(plugins.SingletonPlugin):
             return
         try:
             user = utils.get_or_create_from_details(details)
-            if utils.is_synchronization_enabled():
-                force = tk.asbool(tk.config.get(CONFIG_FOCE_SYNC, DEFAULT_FORCE_SYNC))
-                user = utils.synchronize(user, details, force)
         except tk.ValidationError as e:
             log.error(
                 f"Cannot create user {details.name}<{details.email}>:"
                 f" {e.error_summary}"
             )
             return
+
+        if utils.is_synchronization_enabled():
+            force = tk.asbool(tk.config.get(CONFIG_FOCE_SYNC, DEFAULT_FORCE_SYNC))
+            try:
+                user = utils.synchronize(user, details, force)
+            except tk.ValidationError as e:
+                log.error(
+                    f"Cannot synchronize user details {details.name}<{details.email}>:"
+                    f" {e.error_summary}"
+                )
+                return
+
         tk.c.user = user["name"]
 
     # IConfigurer

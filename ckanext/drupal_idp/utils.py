@@ -215,7 +215,7 @@ def synchronize(user: UserDict, details: Details, force: bool = False) -> UserDi
             raise tk.ValidationError(
                 {"name": "This username is already taken"}
             )
-        userobj.name = details.name
+        userobj.name =  details.make_userdict()["name"]
         model.Session.commit()
     if (
         force or

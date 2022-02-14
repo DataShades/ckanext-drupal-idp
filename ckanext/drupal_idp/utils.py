@@ -183,6 +183,21 @@ def _attach_details(id: str, details: Details) -> UserDict:
     # do not drop extras that were set by other plugins
     extras = user.pop('plugin_extras', None) or {}
     patch = details.make_userdict()
+
+    changed = False
+    for k, v in patch.items():
+        if k == 'plugin_extras':
+            continue
+        if v != user[k]:
+            changed = True
+
+    for k, v in patch['plugin_extras'].items():
+        if k not in extras or extras[k] != v:
+            changed = True
+
+    if not changed:
+        return tk.get_action("user_show")({"user": admin["name"]}, {"id": id})
+
     extras.update(patch['plugin_extras'])
     patch['plugin_extras'] = extras
     user.update(patch)

@@ -35,7 +35,7 @@ class DetailsData(TypedDict):
     email: str
     id: DrupalId
     roles: List[str]
-
+    avatar: Optional[str]
 
 @dataclasses.dataclass
 class Details:
@@ -43,6 +43,7 @@ class Details:
     email: str
     id: DrupalId
     roles: List[str] = dataclasses.field(default_factory=list)
+    avatar: Optional[str] = None
 
     def is_sysadmin(self):
         return (
@@ -135,10 +136,12 @@ def get_user_details(sid: str) -> Optional[Details]:
     user = adapter.get_user_by_sid(sid)
     # check if session has username,
     # otherwise is unauthenticated user session
+
     if not user:
         return
     details_data = DetailsData(**user)
     roles = adapter.get_user_roles(user.id)
+    details_data["avatar"] = adapter.get_avatar(user.id)
     details_data["roles"] = roles
     return Details(**details_data)
 

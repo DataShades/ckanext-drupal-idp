@@ -1,18 +1,12 @@
-from typing import Callable, Dict
+from __future__ import annotations
 
 import ckan.plugins.toolkit as tk
 
+from ckanext.toolbelt.decorators import Collector
 import ckanext.drupal_idp.utils as utils
 
-_actions: Dict[str, Callable] = {}
+action, get_actions = Collector("drupal_idp").split()
 
-def action(func: Callable):
-    _actions[f'drupal_idp_{func.__name__}'] = func
-    return func
-
-
-def get_actions():
-    return _actions
 
 
 @action
@@ -30,3 +24,25 @@ def user_show(context, data_dict):
         raise tk.ObjectNotFound(tk._(f'DrupalId({id}) not found'))
     data_dict['id'] = user.id
     return tk.get_action("user_show")(context, data_dict)
+
+
+@action("user_show")
+@tk.side_effect_free
+@tk.chained_action
+def user_show(next_, context, data_dict):
+    user = next_(context, data_dict)
+    if user["image_display_url"]:
+        return user
+    extras = context["model"].User.get(user["id"]).plugin_extras or {}
+    drupal_idp = extras.get("drupal_idp") or {}
+    url = drupal_idp.get("avatar")
+    if not url:
+        return user
+
+    host = tk.config.get(utils.CONFIG_STATIC_HOST)
+    if host and not url.startswith("http"):
+        url = host.rstrip("/") + url
+
+    user["image_display_url"] = url
+
+    return user

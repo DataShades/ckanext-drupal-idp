@@ -1,5 +1,6 @@
 import logging
 import abc
+import os
 from typing import Any, Dict, Iterable, List, Optional
 
 import sqlalchemy as sa
@@ -11,7 +12,8 @@ from ckan.exceptions import CkanConfigurationException
 import ckanext.drupal_idp.utils as utils
 
 log = logging.getLogger(__name__)
-
+CONFIG_PUBLIC_PATH = "ckanext.drupal_idp.public_path"
+DEFAULT_PUBLIC_PATH = "/sites/default/files/"
 
 def db_url() -> str:
     url = tk.config.get(utils.CONFIG_DB_URL)
@@ -34,6 +36,9 @@ class BaseDrupal(metaclass=abc.ABCMeta):
     def get_user_roles(self, uid: utils.DrupalId) -> List[str]:
         ...
 
+    @abc.abstractmethod
+    def get_avatar(self, uid: utils.DrupalId) -> Optional[str]:
+        ...
 
 class Drupal9(BaseDrupal):
     def get_user_by_sid(self, sid: str) -> Optional[Any]:
@@ -66,6 +71,29 @@ class Drupal9(BaseDrupal):
             [uid],
         )
         return [role.name for role in query]
+
+    def get_avatar(self, uid: utils.DrupalId):
+        query = self.engine.execute(
+            """
+            SELECT fm.uri
+            FROM file_managed fm
+            JOIN user__user_picture up
+            ON up.user_picture_target_id = fm.fid
+            WHERE up.entity_id = %s
+            LIMIT 1;
+            """,
+            [uid],
+        )
+        path = query.scalar()
+
+        public_prefix = "public://"
+        if path.startswith(public_prefix):
+            path = os.path.join(
+                tk.config.get(CONFIG_PUBLIC_PATH, DEFAULT_PUBLIC_PATH).rstrip("/"),
+                path[len(public_prefix):]
+            )
+        return path
+
 
 
 _mapping = {"9": Drupal9}

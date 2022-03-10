@@ -36,12 +36,13 @@ def user_show(next_, context, data_dict):
     extras = context["model"].User.get(user["id"]).plugin_extras or {}
     drupal_idp = extras.get("drupal_idp") or {}
     url = drupal_idp.get("avatar")
+
     if not url:
         return user
 
     host = tk.config.get(utils.CONFIG_STATIC_HOST)
     if host and not url.startswith("http"):
-        url = host.rstrip("/") + url
+        url = "//" + host.rstrip("/") + url
 
     user["image_display_url"] = url
 

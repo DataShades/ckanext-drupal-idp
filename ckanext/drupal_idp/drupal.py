@@ -85,6 +85,8 @@ class Drupal9(BaseDrupal):
             [uid],
         )
         path = query.scalar()
+        if not path:
+            return None
 
         public_prefix = "public://"
         if path.startswith(public_prefix):

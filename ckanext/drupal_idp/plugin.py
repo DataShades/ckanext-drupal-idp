@@ -8,6 +8,9 @@ from ckanext.drupal_idp.logic import auth
 from ckanext.drupal_idp import helpers, utils, drupal, cli
 
 CONFIG_FOCE_SYNC = "ckanext.drupal_idp.synchronization.force"
+CONFIG_SKIP_STATIC = "ckanext.drupal_idp.skip_static"
+
+DEFAULT_SKIP_STATIC = False
 DEFAULT_FORCE_SYNC = False
 
 
@@ -48,6 +51,16 @@ class DrupalIdpPlugin(plugins.SingletonPlugin):
         """This does drupal authorization.
         The drupal session contains the drupal id of the logged in user.
         We need to convert this to represent the ckan user."""
+
+
+        static = {
+            ("static", "index"),
+            ("webassets", "index"),
+        }
+        if tk.asbool(tk.config.get(CONFIG_SKIP_STATIC, DEFAULT_SKIP_STATIC)) and tk.get_endpoint() in static:
+            log.debug("Skip static route")
+            return
+
         cookie_sid = tk.request.cookies.get(utils.session_cookie_name())
         if not cookie_sid:
             log.debug("No session cookie found")

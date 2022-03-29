@@ -1,10 +1,12 @@
+from __future__ import annotations
+
 import logging
 import abc
 import os
 from typing import Any, Dict, Iterable, List, Optional
 
 import sqlalchemy as sa
-from sqlalchemy.exc import OperationalError
+from sqlalchemy.exc import OperationalError, ProgrammingError
 
 import ckan.plugins.toolkit as tk
 from ckan.exceptions import CkanConfigurationException
@@ -39,6 +41,17 @@ class BaseDrupal(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def get_avatar(self, uid: utils.DrupalId) -> Optional[str]:
         ...
+
+    @abc.abstractmethod
+    def get_field(self, uid: utils.DrupalId, field: str) -> list[Any]:
+        ...
+
+    def get_fields(self, uid: utils.DrupalId, fields: Iterable[str]) -> dict[str, list[Any]]:
+        return {
+            field: self.get_field(uid, field)
+            for field in fields
+        }
+
 
 class Drupal9(BaseDrupal):
     def get_user_by_sid(self, sid: str) -> Optional[Any]:
@@ -86,6 +99,7 @@ class Drupal9(BaseDrupal):
         )
         path = query.scalar()
         if not path:
+            log.debug("User %s has no avatar", e)
             return None
 
         public_prefix = "public://"
@@ -95,6 +109,23 @@ class Drupal9(BaseDrupal):
                 path[len(public_prefix):]
             )
         return path
+
+    def get_field(self, uid: utils.DrupalId, field: str) -> list[Any]:
+        try:
+            query = self.engine.execute(
+                f"""
+                SELECT {field}_value
+                FROM user__{field}
+                WHERE bundle = 'user' AND entity_id = %s AND deleted = 0
+                """,
+                [uid],
+            )
+        except ProgrammingError as e:
+            log.error("Cannot get a user from Drupal's database: %s", e)
+            return []
+
+        return [r[0] for r in query]
+
 
 
 

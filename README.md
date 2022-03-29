@@ -68,6 +68,14 @@ To install ckanext-drupal-idp:
 	# (optional, default: false)
 	ckanext.drupal_idp.same_id = true
 
+	# Custom Drupal fields that shold be synchronized as well
+	# (optional, default: [])
+    ckanext.drupal_idp.extra_fields = field_age field_xxx
+
+	# Skip user identification during static requests(css/js)
+	# (optional, default: false)
+    ckanext.drupal_idp.skip_static = yes
+
 ## API actions
 
 #### `drupal_idp_user_show`

@@ -7,11 +7,12 @@ import six
 import secrets
 from urllib.parse import unquote
 from typing import Any, Dict, List, Optional, TypedDict
-
+from typing_extensions import NotRequired
 
 import ckan.model as model
 import ckan.plugins.toolkit as tk
 import ckan.lib.munge as munge
+from . import signals
 
 CONFIG_DB_URL = "ckanext.drupal_idp.db_url"
 CONFIG_SYNCHRONIZATION_ENABLED = "ckanext.drupal_idp.synchronization.enabled"
@@ -20,7 +21,9 @@ CONFIG_INHERIT_ADMIN_ROLE = "ckanext.drupal_idp.admin_role.inherit"
 CONFIG_ADMIN_ROLE_NAME = "ckanext.drupal_idp.admin_role.name"
 CONFIG_DRUPAL_VERSION = "ckanext.drupal_idp.drupal.version"
 CONFIG_SAME_ID = "ckanext.drupal_idp.same_id"
+CONFIG_EXTRA_FIELDS = "ckanext.drupal_idp.extra_fields"
 
+DEFAULT_EXTRA_FIELDS = []
 DEFAULT_ADMIN_ROLE = "administrator"
 DEFAULT_DRUPAL_VERSION = "9"
 
@@ -34,8 +37,9 @@ class DetailsData(TypedDict):
     name: str
     email: str
     id: DrupalId
-    roles: List[str]
-    avatar: Optional[str]
+    roles: list[str]
+    avatar: NotRequired[Optional[str]]
+    fields: NotRequired[dict[str, list[Any]]]
 
 @dataclasses.dataclass
 class Details:
@@ -44,6 +48,7 @@ class Details:
     id: DrupalId
     roles: List[str] = dataclasses.field(default_factory=list)
     avatar: Optional[str] = None
+    fields: dict[str, list[Any]] = dataclasses.field(default_factory=dict)
 
     def is_sysadmin(self):
         return (
@@ -143,6 +148,10 @@ def get_user_details(sid: str) -> Optional[Details]:
     roles = adapter.get_user_roles(user.id)
     details_data["avatar"] = adapter.get_avatar(user.id)
     details_data["roles"] = roles
+
+    extra_fields = tk.aslist(tk.config.get(CONFIG_EXTRA_FIELDS, DEFAULT_EXTRA_FIELDS))
+    details_data["fields"] = adapter.get_fields(user.id, extra_fields)
+
     return Details(**details_data)
 
 
@@ -171,6 +180,8 @@ def _create_from_details(details: Details) -> UserDict:
 
     admin = tk.get_action("get_site_user")({"ignore_auth": True}, {})
     user = tk.get_action("user_create")({"user": admin["name"]}, user)
+
+    signals.after_create.send(user["id"], user=user)
     return user
 
 
@@ -206,8 +217,10 @@ def _attach_details(id: str, details: Details) -> UserDict:
     user.update(patch)
 
     # user_patch is not available in v2.9
-    user = tk.get_action("user_update")({"user": admin["name"]}, user)
-    return user
+    result = tk.get_action("user_update")({"user": admin["name"]}, user)
+    signals.after_update.send(user["id"], user=user)
+
+    return result
 
 
 def get_or_create_from_details(details: Details) -> UserDict:
@@ -235,10 +248,11 @@ def synchronize(user: UserDict, details: Details, force: bool = False) -> UserDi
             )
         userobj.name =  details.make_userdict()["name"]
         model.Session.commit()
+
     if (
         force or
         userobj.email != details.email
-        or userobj.sysadmin != details.is_sysadmin()
+        or details.make_userdict()["plugin_extras"] != userobj.plugin_extras
     ):
         log.info(f"Synchronizing user {details.name}")
         user = _attach_details(user["id"], details)

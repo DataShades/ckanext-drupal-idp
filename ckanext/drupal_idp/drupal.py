@@ -99,7 +99,7 @@ class Drupal9(BaseDrupal):
         )
         path = query.scalar()
         if not path:
-            log.debug("User %s has no avatar", e)
+            log.debug("User %s has no avatar", uid)
             return None
 
         public_prefix = "public://"

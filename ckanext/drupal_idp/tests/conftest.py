@@ -13,6 +13,8 @@ def details_data():
         "email": "test@example.net",
         "id": 123,
         "roles": [],
+        "fields": {},
+        "avatar": None
     }
 
 

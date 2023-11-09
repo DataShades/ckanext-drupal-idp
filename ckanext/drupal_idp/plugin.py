@@ -1,11 +1,12 @@
 import logging
 
+from ckan import model
 import ckan.plugins as plugins
 import ckan.plugins.toolkit as tk
 
 from ckanext.drupal_idp.logic import action
 from ckanext.drupal_idp.logic import auth
-from ckanext.drupal_idp import helpers, utils, drupal, cli
+from ckanext.drupal_idp import helpers, utils, drupal, cli, views
 
 CONFIG_FOCE_SYNC = "ckanext.drupal_idp.synchronization.force"
 CONFIG_SKIP_STATIC = "ckanext.drupal_idp.skip_static"
@@ -24,6 +25,10 @@ class DrupalIdpPlugin(plugins.SingletonPlugin):
     plugins.implements(plugins.IActions)
     plugins.implements(plugins.IAuthFunctions)
     plugins.implements(plugins.IClick)
+    plugins.implements(plugins.IBlueprint)
+
+    def get_blueprint(self):
+        return views.get_blueprints()
 
     # IClick
 
@@ -51,7 +56,6 @@ class DrupalIdpPlugin(plugins.SingletonPlugin):
         """This does drupal authorization.
         The drupal session contains the drupal id of the logged in user.
         We need to convert this to represent the ckan user."""
-
 
         static = {
             ("static", "index"),
@@ -90,7 +94,10 @@ class DrupalIdpPlugin(plugins.SingletonPlugin):
                 )
                 return
 
-        tk.c.user = user["name"]
+        if tk.check_ckan_version("2.10"):
+            tk.login_user(model.User.get(user["name"]))
+        else:
+            tk.c.user = user["name"]
 
     # IConfigurer
 

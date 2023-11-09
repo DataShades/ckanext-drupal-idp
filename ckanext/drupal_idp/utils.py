@@ -252,7 +252,7 @@ def synchronize(user: UserDict, details: Details, force: bool = False) -> UserDi
     if (
         force or
         userobj.email != details.email
-        or details.make_userdict()["plugin_extras"] != userobj.plugin_extras
+        or details.make_userdict()["plugin_extras"]["drupal_idp"] != userobj.plugin_extras.get("drupal_idp")
     ):
         log.info(f"Synchronizing user {details.name}")
         user = _attach_details(user["id"], details)

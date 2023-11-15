@@ -131,17 +131,25 @@ def decode_sid(cookie_sid: str) -> str:
     return sid
 
 
-def get_user_details(sid: str) -> Optional[Details]:
+def sid_into_uid(sid: str) -> DrupalId | None:
     """Fetch user data from Drupal's database."""
     import ckanext.drupal_idp.drupal as drupal
 
     adapter = drupal.get_adapter(
         tk.config.get(CONFIG_DRUPAL_VERSION, DEFAULT_DRUPAL_VERSION)
     )
-    user = adapter.get_user_by_sid(sid)
-    # check if session has username,
-    # otherwise is unauthenticated user session
+    return adapter.get_uid_by_sid(sid)
 
+
+def get_user_details(uid: DrupalId) -> Optional[Details]:
+    """Fetch user data from Drupal's database."""
+    import ckanext.drupal_idp.drupal as drupal
+
+    adapter = drupal.get_adapter(
+        tk.config.get(CONFIG_DRUPAL_VERSION, DEFAULT_DRUPAL_VERSION)
+    )
+
+    user = adapter.get_user_by_uid(uid)
     if not user:
         return
     details_data = DetailsData(**user)
@@ -176,7 +184,7 @@ def _create_from_details(details: Details) -> UserDict:
     user = details.make_userdict()
     user["password"] = _make_password()
     if tk.asbool(tk.config.get(CONFIG_SAME_ID)):
-        user["id"] = details.id
+        user["id"] = str(details.id)
 
     admin = tk.get_action("get_site_user")({"ignore_auth": True}, {})
     user = tk.get_action("user_create")({"user": admin["name"]}, user)

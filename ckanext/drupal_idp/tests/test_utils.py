@@ -86,10 +86,10 @@ def test_decode_sid():
 
 class TestFixtures:
     def test_no_session(self, with_no_drupal_session):
-        assert utils.get_user_details("sid") is None
+        assert utils.get_user_details("uid") is None
 
     def test_with_session(self, with_drupal_session):
-        assert utils.get_user_details("sid") is not None
+        assert utils.get_user_details("uid") is not None
 
 
 @pytest.mark.usefixtures("clean_db")

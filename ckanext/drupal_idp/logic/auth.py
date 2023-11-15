@@ -15,3 +15,14 @@ def get_auth_functions():
 @tk.auth_disallow_anonymous_access
 def user_show(context, data_dict):
     return {'success': False, 'msg': tk._('Users are not allowed to use DrupalID')}
+
+
+@auth_function
+@tk.auth_disallow_anonymous_access
+def user_initialize(context, data_dict):
+    return {'success': False, 'msg': tk._('Users are not allowed to use DrupalID')}
+
+@auth_function
+@tk.auth_disallow_anonymous_access
+def user_synchronize(context, data_dict):
+    return {'success': False, 'msg': tk._('Users are not allowed to use DrupalID')}

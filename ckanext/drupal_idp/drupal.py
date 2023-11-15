@@ -6,6 +6,7 @@ import os
 from typing import Any, Dict, Iterable, List, Optional
 
 import sqlalchemy as sa
+from sqlalchemy.engine import Row
 from sqlalchemy.exc import OperationalError, ProgrammingError
 
 import ckan.plugins.toolkit as tk
@@ -16,6 +17,7 @@ import ckanext.drupal_idp.utils as utils
 log = logging.getLogger(__name__)
 CONFIG_PUBLIC_PATH = "ckanext.drupal_idp.public_path"
 DEFAULT_PUBLIC_PATH = "/sites/default/files/"
+
 
 def db_url() -> str:
     url = tk.config.get(utils.CONFIG_DB_URL)
@@ -31,7 +33,11 @@ class BaseDrupal(metaclass=abc.ABCMeta):
         self.engine = sa.create_engine(url)
 
     @abc.abstractmethod
-    def get_user_by_sid(self, sid: str) -> Optional[Any]:
+    def get_uid_by_sid(self, sid: str) -> Optional[utils.DrupalId]:
+        ...
+
+    @abc.abstractmethod
+    def get_user_by_uid(self, uid: utils.DrupalId) -> Row | None:
         ...
 
     @abc.abstractmethod
@@ -46,25 +52,41 @@ class BaseDrupal(metaclass=abc.ABCMeta):
     def get_field(self, uid: utils.DrupalId, field: str) -> list[Any]:
         ...
 
-    def get_fields(self, uid: utils.DrupalId, fields: Iterable[str]) -> dict[str, list[Any]]:
-        return {
-            field: self.get_field(uid, field)
-            for field in fields
-        }
+    def get_fields(
+        self, uid: utils.DrupalId, fields: Iterable[str]
+    ) -> dict[str, list[Any]]:
+        return {field: self.get_field(uid, field) for field in fields}
 
 
 class Drupal9(BaseDrupal):
-    def get_user_by_sid(self, sid: str) -> Optional[Any]:
+    def get_uid_by_sid(self, sid: str) -> utils.DrupalId | None:
         try:
             user = self.engine.execute(
                 """
-            SELECT d.name "name", d.mail email, d.uid id
-            FROM sessions s
-            JOIN users_field_data d
+            SELECT d.uid id
+            FROM users_field_data d
+            JOIN sessions s
             ON s.uid = d.uid
             WHERE s.sid = %s
             """,
                 [sid],
+            ).first()
+        except OperationalError as e:
+            log.error("Cannot get a user from Drupal's database: %s", e)
+            return
+
+        if user:
+            return user.id
+
+    def get_user_by_uid(self, uid: utils.DrupalId) -> Row | None:
+        try:
+            user = self.engine.execute(
+                """
+            SELECT d.name "name", d.mail email, d.uid id
+            FROM users_field_data d
+            WHERE d.uid = %s
+            """,
+                [uid],
             ).first()
         except OperationalError as e:
             log.error("Cannot get a user from Drupal's database: %s", e)
@@ -105,8 +127,10 @@ class Drupal9(BaseDrupal):
         public_prefix = "public://"
         if path.startswith(public_prefix):
             path = os.path.join(
-                tk.config.get(CONFIG_PUBLIC_PATH, DEFAULT_PUBLIC_PATH).rstrip("/"),
-                path[len(public_prefix):]
+                tk.config.get(CONFIG_PUBLIC_PATH, DEFAULT_PUBLIC_PATH).rstrip(
+                    "/"
+                ),
+                path[len(public_prefix) :],
             )
         return path
 
@@ -127,11 +151,8 @@ class Drupal9(BaseDrupal):
         return [r[0] for r in query]
 
 
-
-
 _mapping = {"9": Drupal9}
 
 
 def get_adapter(version: str) -> BaseDrupal:
-
     return _mapping[version](db_url())

@@ -8,12 +8,8 @@ from ckanext.drupal_idp.logic import action
 from ckanext.drupal_idp.logic import auth
 from ckanext.drupal_idp import helpers, utils, drupal, cli, views
 
-CONFIG_FOCE_SYNC = "ckanext.drupal_idp.synchronization.force"
 CONFIG_SKIP_STATIC = "ckanext.drupal_idp.skip_static"
-
 DEFAULT_SKIP_STATIC = False
-DEFAULT_FORCE_SYNC = False
-
 
 log = logging.getLogger(__name__)
 
@@ -61,7 +57,10 @@ class DrupalIdpPlugin(plugins.SingletonPlugin):
             ("static", "index"),
             ("webassets", "index"),
         }
-        if tk.asbool(tk.config.get(CONFIG_SKIP_STATIC, DEFAULT_SKIP_STATIC)) and tk.get_endpoint() in static:
+        if (
+            tk.asbool(tk.config.get(CONFIG_SKIP_STATIC, DEFAULT_SKIP_STATIC))
+            and tk.get_endpoint() in static
+        ):
             log.debug("Skip static route")
             return
 
@@ -70,29 +69,26 @@ class DrupalIdpPlugin(plugins.SingletonPlugin):
             log.debug("No session cookie found")
             return
         sid = utils.decode_sid(cookie_sid)
-        details = utils.get_user_details(sid)
-        if not details:
-            log.debug("No user details for SID %s", sid)
-            return
-        try:
-            user = utils.get_or_create_from_details(details)
-        except tk.ValidationError as e:
-            log.error(
-                f"Cannot create user {details.name}<{details.email}>:"
-                f" {e.error_summary}"
-            )
+        uid = utils.sid_into_uid(sid)
+        if not uid:
             return
 
-        if utils.is_synchronization_enabled():
-            force = tk.asbool(tk.config.get(CONFIG_FOCE_SYNC, DEFAULT_FORCE_SYNC))
-            try:
-                user = utils.synchronize(user, details, force)
-            except tk.ValidationError as e:
-                log.error(
-                    f"Cannot synchronize user details {details.name}<{details.email}>:"
-                    f" {e.error_summary}"
+        try:
+            user = tk.get_action("drupal_idp_user_initialize")(
+                {"ignore_auth": True}, {"id": uid}
+            )
+            if utils.is_synchronization_enabled():
+                user = tk.get_action("drupal_idp_user_synchronize")(
+                    {"ignore_auth": True}, {"id": uid}
                 )
-                return
+
+        except tk.ObjectNotFound:
+            log.warning("No drupal user found for UID %s", uid)
+            return
+
+        except tk.ValidationError as e:
+            log.error("Cannot create or synchronize user: %s", e.error_summary)
+            return
 
         if tk.check_ckan_version("2.10"):
             tk.login_user(model.User.get(user["name"]))

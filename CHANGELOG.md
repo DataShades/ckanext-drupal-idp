@@ -10,17 +10,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 <small>[Compare with latest](https://github.com/DataShades/ckanext-drupal-idp/compare/v0.4.6a0...HEAD)</small>
 
-### Features
+### Bug Fixes
 
-- add user_initialize and user_synchronize actions ([a27a8e6](https://github.com/DataShades/ckanext-drupal-idp/commit/a27a8e69b0f77c5e6b8433469f1ca144a19ebc24) by Sergey Motornyuk).
+- synchronize fails when plugin extras is missing from user object ([fc87940](https://github.com/DataShades/ckanext-drupal-idp/commit/fc879400a00a71ed498100768112680840404f3d) by Sergey Motornyuk).
 
 <!-- insertion marker -->
-## [v0.4.6a0](https://github.com/DataShades/ckanext-drupal-idp/releases/tag/v0.4.6a0) - 2023-11-09
+## [v0.4.6a0](https://github.com/DataShades/ckanext-drupal-idp/releases/tag/v0.4.6a0) - 2023-11-15
 
 <small>[Compare with v0.4.5](https://github.com/DataShades/ckanext-drupal-idp/compare/v0.4.5...v0.4.6a0)</small>
 
 ### Features
 
+- add user_initialize and user_synchronize actions ([a27a8e6](https://github.com/DataShades/ckanext-drupal-idp/commit/a27a8e69b0f77c5e6b8433469f1ca144a19ebc24) by Sergey Motornyuk).
 - configurable drupal login endpoint ([05aed2d](https://github.com/DataShades/ckanext-drupal-idp/commit/05aed2dacf4c2a7da81606a1690bd5ade11dcb02) by Sergey Motornyuk).
 
 ## [v0.4.5](https://github.com/DataShades/ckanext-drupal-idp/releases/tag/v0.4.5) - 2023-01-25

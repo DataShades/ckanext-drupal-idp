@@ -41,6 +41,7 @@ class DetailsData(TypedDict):
     avatar: NotRequired[Optional[str]]
     fields: NotRequired[dict[str, list[Any]]]
 
+
 @dataclasses.dataclass
 class Details:
     name: str
@@ -157,11 +158,12 @@ def get_user_details(uid: DrupalId) -> Optional[Details]:
     details_data["avatar"] = adapter.get_avatar(user.id)
     details_data["roles"] = roles
 
-    extra_fields = tk.aslist(tk.config.get(CONFIG_EXTRA_FIELDS, DEFAULT_EXTRA_FIELDS))
+    extra_fields = tk.aslist(
+        tk.config.get(CONFIG_EXTRA_FIELDS, DEFAULT_EXTRA_FIELDS)
+    )
     details_data["fields"] = adapter.get_fields(user.id, extra_fields)
 
     return Details(**details_data)
-
 
 
 def _get_by_email(email: str) -> Optional[UserDict]:
@@ -200,28 +202,30 @@ def _attach_details(id: str, details: Details) -> UserDict:
     ValidationError if email or username is not unique
     """
     admin = tk.get_action("get_site_user")({"ignore_auth": True}, {})
-    user = tk.get_action("user_show")({"user": admin["name"]}, {"id": id, "include_plugin_extras": True})
+    user = tk.get_action("user_show")(
+        {"user": admin["name"]}, {"id": id, "include_plugin_extras": True}
+    )
 
     # do not drop extras that were set by other plugins
-    extras = user.pop('plugin_extras', None) or {}
+    extras = user.pop("plugin_extras", None) or {}
     patch = details.make_userdict()
 
     changed = False
     for k, v in patch.items():
-        if k == 'plugin_extras':
+        if k == "plugin_extras":
             continue
         if v != user[k]:
             changed = True
 
-    for k, v in patch['plugin_extras'].items():
+    for k, v in patch["plugin_extras"].items():
         if k not in extras or extras[k] != v:
             changed = True
 
     if not changed:
         return tk.get_action("user_show")({"user": admin["name"]}, {"id": id})
 
-    extras.update(patch['plugin_extras'])
-    patch['plugin_extras'] = extras
+    extras.update(patch["plugin_extras"])
+    patch["plugin_extras"] = extras
     user.update(patch)
 
     # user_patch is not available in v2.9
@@ -238,7 +242,9 @@ def get_or_create_from_details(details: Details) -> UserDict:
     ValidationError if email or username is not unique
     """
     try:
-        user = tk.get_action("drupal_idp_user_show")({"ignore_auth": True}, {"id": details.id})
+        user = tk.get_action("drupal_idp_user_show")(
+            {"ignore_auth": True}, {"id": details.id}
+        )
     except tk.ObjectNotFound:
         user = _get_by_email(details.email)
         if user:
@@ -246,7 +252,9 @@ def get_or_create_from_details(details: Details) -> UserDict:
     return user or _create_from_details(details)
 
 
-def synchronize(user: UserDict, details: Details, force: bool = False) -> UserDict:
+def synchronize(
+    user: UserDict, details: Details, force: bool = False
+) -> UserDict:
     userobj = model.User.get(user["id"])
     if userobj.name != details.name:
         log.info(f"Synchronizing user {userobj.name} -> {details.name}")
@@ -254,13 +262,16 @@ def synchronize(user: UserDict, details: Details, force: bool = False) -> UserDi
             raise tk.ValidationError(
                 {"name": "This username is already taken"}
             )
-        userobj.name =  details.make_userdict()["name"]
+        userobj.name = details.make_userdict()["name"]
         model.Session.commit()
 
+    current_extras = userobj.plugin_extras or {}
+
     if (
-        force or
-        userobj.email != details.email
-        or details.make_userdict()["plugin_extras"]["drupal_idp"] != userobj.plugin_extras.get("drupal_idp")
+        force
+        or userobj.email != details.email
+        or details.make_userdict()["plugin_extras"]["drupal_idp"]
+        != current_extras.get("drupal_idp")
     ):
         log.info(f"Synchronizing user {details.name}")
         user = _attach_details(user["id"], details)

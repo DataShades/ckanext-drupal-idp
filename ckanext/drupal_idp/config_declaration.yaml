@@ -1,0 +1,64 @@
+version: 1
+groups:
+  - annotation: ckanext-drupal-idp
+    options:
+      - key: ckanext.drupal_idp.admin_role.inherit
+        type: bool
+        description: |
+          Grant CKAN sysadmin role to Drupal user with
+          `ckanext.drupal_idp.admin_role.name` role
+
+      - key: ckanext.drupal_idp.admin_role.name
+        default: administrator
+        description: |
+          Name of Drupal role that grants syadmin permissions.
+
+      - key: ckanext.drupal_idp.db_url
+        required: true
+        description: |
+          Connetions string for Drupal's DB
+
+      - key: ckanext.drupal_idp.drupal.version
+        default: "9"
+        description: |
+          Version of Drupal used by application.
+
+      - key: ckanext.drupal_idp.extra_fields
+        type: list
+        description: |
+          Additional user's fields from Drupal that must be stored on CKAN side
+
+      - key: ckanext.drupal_idp.host
+        description: |
+          Drupal's host. Use this option if CKAN and Drupal application are
+          serverd on different URLs
+
+      - key: ckanext.drupal_idp.kick_missing_session
+        type: bool
+        description: |
+          Sign out CKAN user if there are no active sessions for him on Drupal side
+
+      - key: ckanext.drupal_idp.public_path
+        default: "/sites/default/files/"
+        description: |
+          Public path of Drupal's static files.
+
+      - key: ckanext.drupal_idp.same_id
+        type: bool
+        description: |
+          Grant CKAN user the same ID as one used by Drupal.
+
+      - key: ckanext.drupal_idp.skip_static
+        type: bool
+        description: |
+          Skip authentication during serving static files.
+
+      - key: ckanext.drupal_idp.synchronization.force
+        type: bool
+        description: |
+          Enforce user details synchronization during each request.
+
+      - key: ckanext.drupal_idp.synchronization.enabled
+        type: bool
+        description: |
+          Allow user details synchronization

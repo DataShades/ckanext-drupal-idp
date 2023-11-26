@@ -8,13 +8,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 <!-- insertion marker -->
 ## Unreleased
 
-<small>[Compare with latest](https://github.com/DataShades/ckanext-drupal-idp/compare/v0.4.6a0...HEAD)</small>
+<small>[Compare with latest](https://github.com/DataShades/ckanext-drupal-idp/compare/v0.4.6a1...HEAD)</small>
+
+### Features
+
+- kick_user option; config declarations ([2d3cfe7](https://github.com/DataShades/ckanext-drupal-idp/commit/2d3cfe72b83d2644aef5f751118c2960c81a1f6e) by Sergey Motornyuk).
+
+<!-- insertion marker -->
+## [v0.4.6a1](https://github.com/DataShades/ckanext-drupal-idp/releases/tag/v0.4.6a1) - 2023-11-22
+
+<small>[Compare with v0.4.6a0](https://github.com/DataShades/ckanext-drupal-idp/compare/v0.4.6a0...v0.4.6a1)</small>
 
 ### Bug Fixes
 
 - synchronize fails when plugin extras is missing from user object ([fc87940](https://github.com/DataShades/ckanext-drupal-idp/commit/fc879400a00a71ed498100768112680840404f3d) by Sergey Motornyuk).
 
-<!-- insertion marker -->
 ## [v0.4.6a0](https://github.com/DataShades/ckanext-drupal-idp/releases/tag/v0.4.6a0) - 2023-11-15
 
 <small>[Compare with v0.4.5](https://github.com/DataShades/ckanext-drupal-idp/compare/v0.4.5...v0.4.6a0)</small>

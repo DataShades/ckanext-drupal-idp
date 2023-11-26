@@ -7,12 +7,10 @@ import ckan.plugins.toolkit as tk
 
 from ckanext.toolbelt.decorators import Collector
 
-import ckanext.drupal_idp.utils as utils
+from ckanext.drupal_idp import utils, config
 
 log = logging.getLogger(__name__)
 action, get_actions = Collector("drupal_idp").split()
-CONFIG_FOCE_SYNC = "ckanext.drupal_idp.synchronization.force"
-DEFAULT_FORCE_SYNC = False
 
 
 @action
@@ -37,7 +35,7 @@ def user_synchronize(context, data_dict):
     if not details:
         raise tk.ObjectNotFound("drupal_user")
 
-    force = tk.asbool(tk.config.get(CONFIG_FOCE_SYNC, DEFAULT_FORCE_SYNC))
+    force = config.force_sync()
     return utils.synchronize(user, details, force)
 
 
@@ -83,7 +81,7 @@ def chained_user_show(next_, context, data_dict):
     if not url:
         return user
 
-    host = tk.config.get(utils.CONFIG_STATIC_HOST)
+    host = config.static_host()
     if host and not url.startswith("http"):
         url = "//" + host.rstrip("/") + url
 

@@ -6,14 +6,19 @@ import ckan.plugins.toolkit as tk
 
 from ckanext.drupal_idp.logic import action
 from ckanext.drupal_idp.logic import auth
-from ckanext.drupal_idp import helpers, utils, drupal, cli, views
-
-CONFIG_SKIP_STATIC = "ckanext.drupal_idp.skip_static"
-DEFAULT_SKIP_STATIC = False
+from ckanext.drupal_idp import helpers, utils, drupal, cli, views, config
 
 log = logging.getLogger(__name__)
 
+try:
+    config_declarations = tk.blanket.config_declarations
+except AttributeError:
 
+    def config_declarations(cls):
+        return cls
+
+
+@config_declarations
 class DrupalIdpPlugin(plugins.SingletonPlugin):
     plugins.implements(plugins.IAuthenticator, inherit=True)
     plugins.implements(plugins.IConfigurer)
@@ -57,10 +62,7 @@ class DrupalIdpPlugin(plugins.SingletonPlugin):
             ("static", "index"),
             ("webassets", "index"),
         }
-        if (
-            tk.asbool(tk.config.get(CONFIG_SKIP_STATIC, DEFAULT_SKIP_STATIC))
-            and tk.get_endpoint() in static
-        ):
+        if config.skip_static() and tk.get_endpoint() in static:
             log.debug("Skip static route")
             return
 
@@ -68,9 +70,12 @@ class DrupalIdpPlugin(plugins.SingletonPlugin):
         if not cookie_sid:
             log.debug("No session cookie found")
             return
+
         sid = utils.decode_sid(cookie_sid)
         uid = utils.sid_into_uid(sid)
         if not uid:
+            if tk.check_ckan_version("2.10") and config.kick_missing_session():
+                tk.logout_user()
             return
 
         try:

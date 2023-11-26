@@ -12,18 +12,16 @@ from sqlalchemy.exc import OperationalError, ProgrammingError
 import ckan.plugins.toolkit as tk
 from ckan.exceptions import CkanConfigurationException
 
-import ckanext.drupal_idp.utils as utils
+from ckanext.drupal_idp import utils, config
 
 log = logging.getLogger(__name__)
-CONFIG_PUBLIC_PATH = "ckanext.drupal_idp.public_path"
-DEFAULT_PUBLIC_PATH = "/sites/default/files/"
 
 
 def db_url() -> str:
-    url = tk.config.get(utils.CONFIG_DB_URL)
+    url = config.db_url()
     if not url:
         raise CkanConfigurationException(
-            f"drupal_idp plugin requires {utils.CONFIG_DB_URL} config option."
+            f"drupal_idp plugin requires {config.CONFIG_DB_URL} config option."
         )
     return url
 
@@ -127,9 +125,7 @@ class Drupal9(BaseDrupal):
         public_prefix = "public://"
         if path.startswith(public_prefix):
             path = os.path.join(
-                tk.config.get(CONFIG_PUBLIC_PATH, DEFAULT_PUBLIC_PATH).rstrip(
-                    "/"
-                ),
+                config.public_path().rstrip("/"),
                 path[len(public_prefix) :],
             )
         return path
@@ -151,7 +147,7 @@ class Drupal9(BaseDrupal):
         return [r[0] for r in query]
 
 
-_mapping = {"9": Drupal9}
+_mapping = {"9": Drupal9, "10": Drupal9, "11": Drupal9}
 
 
 def get_adapter(version: str) -> BaseDrupal:

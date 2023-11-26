@@ -4,7 +4,7 @@ import ckan.model as model
 import ckan.lib.munge as munge
 
 
-import ckanext.drupal_idp.utils as utils
+from ckanext.drupal_idp import utils, config
 
 
 class TestDetails:
@@ -25,21 +25,21 @@ class TestDetails:
         }
 
     def test_sysadmin_ignored_by_default(self, details_data):
-        details_data["roles"].append(utils.DEFAULT_ADMIN_ROLE)
+        details_data["roles"].append(config.DEFAULT_ADMIN_ROLE)
         assert not utils.Details(**details_data).is_sysadmin()
 
-    @pytest.mark.ckan_config(utils.CONFIG_INHERIT_ADMIN_ROLE, "true")
+    @pytest.mark.ckan_config(config.CONFIG_INHERIT_ADMIN_ROLE, "true")
     def test_sysadmin(self, details_data):
         assert not utils.Details(**details_data).is_sysadmin()
         details_data["roles"].append("not-an-admin")
         assert not utils.Details(**details_data).is_sysadmin()
-        details_data["roles"].append(utils.DEFAULT_ADMIN_ROLE)
+        details_data["roles"].append(config.DEFAULT_ADMIN_ROLE)
         assert utils.Details(**details_data).is_sysadmin()
 
-    @pytest.mark.ckan_config(utils.CONFIG_INHERIT_ADMIN_ROLE, "true")
-    @pytest.mark.ckan_config(utils.CONFIG_ADMIN_ROLE_NAME, "custom-admin")
+    @pytest.mark.ckan_config(config.CONFIG_INHERIT_ADMIN_ROLE, "true")
+    @pytest.mark.ckan_config(config.CONFIG_ADMIN_ROLE_NAME, "custom-admin")
     def test_sysadmin_with_custom_role(self, details_data):
-        details_data["roles"].append(utils.DEFAULT_ADMIN_ROLE)
+        details_data["roles"].append(config.DEFAULT_ADMIN_ROLE)
         assert not utils.Details(**details_data).is_sysadmin()
         details_data["roles"].append("custom-admin")
         assert utils.Details(**details_data).is_sysadmin()
@@ -49,7 +49,7 @@ class TestSynchronizationEnabled:
     def test_default_value(self):
         assert not utils.is_synchronization_enabled()
 
-    @pytest.mark.ckan_config(utils.CONFIG_SYNCHRONIZATION_ENABLED, "true")
+    @pytest.mark.ckan_config(config.CONFIG_SYNCHRONIZATION_ENABLED, "true")
     def test_updated_value(self):
         assert utils.is_synchronization_enabled()
 
@@ -70,7 +70,7 @@ class TestSessionCookieName:
             == "SSESS49960de5880e8c687434170f6476605b"
         )
 
-    @pytest.mark.ckan_config(utils.CONFIG_STATIC_HOST, "my.site.com")
+    @pytest.mark.ckan_config(config.CONFIG_STATIC_HOST, "my.site.com")
     def test_static_host(self):
         assert (
             utils.session_cookie_name()
@@ -111,7 +111,7 @@ class TestGetOrCreation:
         userdict = utils.get_or_create_from_details(details)
         assert userdict["id"] != details_data["id"]
 
-    @pytest.mark.ckan_config(utils.CONFIG_SAME_ID, "true")
+    @pytest.mark.ckan_config(config.CONFIG_SAME_ID, "true")
     def test_same_id(self, details_data):
         details = utils.Details(**details_data)
         userdict = utils.get_or_create_from_details(details)

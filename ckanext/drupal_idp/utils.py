@@ -12,20 +12,7 @@ from typing_extensions import NotRequired
 import ckan.model as model
 import ckan.plugins.toolkit as tk
 import ckan.lib.munge as munge
-from . import signals
-
-CONFIG_DB_URL = "ckanext.drupal_idp.db_url"
-CONFIG_SYNCHRONIZATION_ENABLED = "ckanext.drupal_idp.synchronization.enabled"
-CONFIG_STATIC_HOST = "ckanext.drupal_idp.host"
-CONFIG_INHERIT_ADMIN_ROLE = "ckanext.drupal_idp.admin_role.inherit"
-CONFIG_ADMIN_ROLE_NAME = "ckanext.drupal_idp.admin_role.name"
-CONFIG_DRUPAL_VERSION = "ckanext.drupal_idp.drupal.version"
-CONFIG_SAME_ID = "ckanext.drupal_idp.same_id"
-CONFIG_EXTRA_FIELDS = "ckanext.drupal_idp.extra_fields"
-
-DEFAULT_EXTRA_FIELDS = []
-DEFAULT_ADMIN_ROLE = "administrator"
-DEFAULT_DRUPAL_VERSION = "9"
+from . import signals, config
 
 log = logging.getLogger(__name__)
 
@@ -53,9 +40,8 @@ class Details:
 
     def is_sysadmin(self):
         return (
-            tk.asbool(tk.config.get(CONFIG_INHERIT_ADMIN_ROLE))
-            and tk.config.get(CONFIG_ADMIN_ROLE_NAME, DEFAULT_ADMIN_ROLE)
-            in self.roles
+            config.inherit_admin_role()
+            and config.admin_role_name() in self.roles
         )
 
     def make_userdict(self):
@@ -68,7 +54,7 @@ class Details:
 
 
 def is_synchronization_enabled() -> bool:
-    return tk.asbool(tk.config.get(CONFIG_SYNCHRONIZATION_ENABLED))
+    return config.synchronization_enabled()
 
 
 def _make_password():
@@ -76,7 +62,7 @@ def _make_password():
 
 
 def _get_host() -> str:
-    host = tk.config.get(CONFIG_STATIC_HOST)
+    host = config.static_host()
     if not host:
         host = tk.request.environ["HTTP_HOST"].split(":")[0]
     return host
@@ -136,9 +122,7 @@ def sid_into_uid(sid: str) -> DrupalId | None:
     """Fetch user data from Drupal's database."""
     import ckanext.drupal_idp.drupal as drupal
 
-    adapter = drupal.get_adapter(
-        tk.config.get(CONFIG_DRUPAL_VERSION, DEFAULT_DRUPAL_VERSION)
-    )
+    adapter = drupal.get_adapter(config.drupal_version())
     return adapter.get_uid_by_sid(sid)
 
 
@@ -146,9 +130,7 @@ def get_user_details(uid: DrupalId) -> Optional[Details]:
     """Fetch user data from Drupal's database."""
     import ckanext.drupal_idp.drupal as drupal
 
-    adapter = drupal.get_adapter(
-        tk.config.get(CONFIG_DRUPAL_VERSION, DEFAULT_DRUPAL_VERSION)
-    )
+    adapter = drupal.get_adapter(config.drupal_version())
 
     user = adapter.get_user_by_uid(uid)
     if not user:
@@ -158,9 +140,7 @@ def get_user_details(uid: DrupalId) -> Optional[Details]:
     details_data["avatar"] = adapter.get_avatar(user.id)
     details_data["roles"] = roles
 
-    extra_fields = tk.aslist(
-        tk.config.get(CONFIG_EXTRA_FIELDS, DEFAULT_EXTRA_FIELDS)
-    )
+    extra_fields = config.extra_fields()
     details_data["fields"] = adapter.get_fields(user.id, extra_fields)
 
     return Details(**details_data)
@@ -185,7 +165,7 @@ def _create_from_details(details: Details) -> UserDict:
     """
     user = details.make_userdict()
     user["password"] = _make_password()
-    if tk.asbool(tk.config.get(CONFIG_SAME_ID)):
+    if config.same_id():
         user["id"] = str(details.id)
 
     admin = tk.get_action("get_site_user")({"ignore_auth": True}, {})

@@ -39,10 +39,7 @@ class Details:
     fields: dict[str, list[Any]] = dataclasses.field(default_factory=dict)
 
     def is_sysadmin(self):
-        return (
-            config.inherit_admin_role()
-            and config.admin_role_name() in self.roles
-        )
+        return config.inherit_admin_role() and config.admin_role_name() in self.roles
 
     def make_userdict(self):
         return {
@@ -182,8 +179,12 @@ def _attach_details(id: str, details: Details) -> UserDict:
     ValidationError if email or username is not unique
     """
     admin = tk.get_action("get_site_user")({"ignore_auth": True}, {})
+
+    # in v2.10 you have to put sysadmin into context in order to get
+    # plugin_extras. Mere `ignore_auth` doesn't work
     user = tk.get_action("user_show")(
-        {"user": admin["name"]}, {"id": id, "include_plugin_extras": True}
+        {"user": admin["name"], "keep_email": True},
+        {"id": id, "include_plugin_extras": True},
     )
 
     # do not drop extras that were set by other plugins
@@ -202,14 +203,14 @@ def _attach_details(id: str, details: Details) -> UserDict:
             changed = True
 
     if not changed:
-        return tk.get_action("user_show")({"user": admin["name"]}, {"id": id})
+        return tk.get_action("user_show")({"ignore_auth": True}, {"id": id})
 
     extras.update(patch["plugin_extras"])
     patch["plugin_extras"] = extras
     user.update(patch)
 
     # user_patch is not available in v2.9
-    result = tk.get_action("user_update")({"user": admin["name"]}, user)
+    result = tk.get_action("user_update")({"ignore_auth": True}, user)
     signals.after_update.send(user["id"], user=user)
 
     return result
@@ -232,16 +233,12 @@ def get_or_create_from_details(details: Details) -> UserDict:
     return user or _create_from_details(details)
 
 
-def synchronize(
-    user: UserDict, details: Details, force: bool = False
-) -> UserDict:
+def synchronize(user: UserDict, details: Details, force: bool = False) -> UserDict:
     userobj = model.User.get(user["id"])
     if userobj.name != details.name:
         log.info(f"Synchronizing user {userobj.name} -> {details.name}")
         if model.User.get(details.name) is not None:
-            raise tk.ValidationError(
-                {"name": "This username is already taken"}
-            )
+            raise tk.ValidationError({"name": "This username is already taken"})
         userobj.name = details.make_userdict()["name"]
         model.Session.commit()
 

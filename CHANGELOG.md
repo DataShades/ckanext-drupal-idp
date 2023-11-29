@@ -8,13 +8,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 <!-- insertion marker -->
 ## Unreleased
 
-<small>[Compare with latest](https://github.com/DataShades/ckanext-drupal-idp/compare/v0.4.6a1...HEAD)</small>
+<small>[Compare with latest](https://github.com/DataShades/ckanext-drupal-idp/compare/v0.4.6a2...HEAD)</small>
+
+### Bug Fixes
+
+- user.name cannot be updated during synchronization ([9d52f21](https://github.com/DataShades/ckanext-drupal-idp/commit/9d52f21f428d3d9e09d76f12662b956d0267aa90) by Sergey Motornyuk).
+
+<!-- insertion marker -->
+## [v0.4.6a2](https://github.com/DataShades/ckanext-drupal-idp/releases/tag/v0.4.6a2) - 2023-11-26
+
+<small>[Compare with v0.4.6a1](https://github.com/DataShades/ckanext-drupal-idp/compare/v0.4.6a1...v0.4.6a2)</small>
 
 ### Features
 
 - kick_user option; config declarations ([2d3cfe7](https://github.com/DataShades/ckanext-drupal-idp/commit/2d3cfe72b83d2644aef5f751118c2960c81a1f6e) by Sergey Motornyuk).
 
-<!-- insertion marker -->
 ## [v0.4.6a1](https://github.com/DataShades/ckanext-drupal-idp/releases/tag/v0.4.6a1) - 2023-11-22
 
 <small>[Compare with v0.4.6a0](https://github.com/DataShades/ckanext-drupal-idp/compare/v0.4.6a0...v0.4.6a1)</small>
@@ -107,4 +115,3 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [v0.0.1](https://github.com/DataShades/ckanext-drupal-idp/releases/tag/v0.0.1) - 2021-03-02
 
 <small>[Compare with first commit](https://github.com/DataShades/ckanext-drupal-idp/compare/efa410bdad6747f83bc09be88686ce31fb49b814...v0.0.1)</small>
-

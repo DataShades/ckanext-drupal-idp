@@ -1,18 +1,21 @@
 from __future__ import annotations
-import dataclasses
+
 import base64
+import dataclasses
 import hashlib
 import logging
-import six
 import secrets
-from urllib.parse import unquote
 from typing import Any, Dict, List, Optional, TypedDict
+from urllib.parse import unquote
+
+import six
 from typing_extensions import NotRequired
 
+import ckan.lib.munge as munge
 import ckan.model as model
 import ckan.plugins.toolkit as tk
-import ckan.lib.munge as munge
-from . import signals, config
+
+from . import config, signals
 
 log = logging.getLogger(__name__)
 
@@ -222,6 +225,8 @@ def get_or_create_from_details(details: Details) -> UserDict:
     Raises:
     ValidationError if email or username is not unique
     """
+
+    user: dict[str, Any] | None
     try:
         user = tk.get_action("drupal_idp_user_show")(
             {"ignore_auth": True}, {"id": details.id}
@@ -230,6 +235,14 @@ def get_or_create_from_details(details: Details) -> UserDict:
         user = _get_by_email(details.email)
         if user:
             user = synchronize(user, details)
+
+    if user and user["state"] == "deleted":
+        userobj = model.User.get(user["id"])
+        if userobj:
+            userobj.activate()
+            model.Session.commit()
+            user["state"] = userobj.state
+
     return user or _create_from_details(details)
 
 

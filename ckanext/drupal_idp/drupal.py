@@ -1,18 +1,17 @@
 from __future__ import annotations
 
-import logging
 import abc
+import logging
 import os
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Any, Iterable, List, Optional
 
 import sqlalchemy as sa
 from sqlalchemy.engine import Row
 from sqlalchemy.exc import OperationalError, ProgrammingError
 
-import ckan.plugins.toolkit as tk
 from ckan.exceptions import CkanConfigurationException
 
-from ckanext.drupal_idp import utils, config
+from ckanext.drupal_idp import config, utils
 
 log = logging.getLogger(__name__)
 

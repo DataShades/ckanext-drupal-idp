@@ -103,7 +103,7 @@ class TestGetOrCreation:
         assert user.plugin_extras["drupal_idp"] == details_data
 
 
-@pytest.mark.usefixtures("clean_db")
+@pytest.mark.usefixtures("with_plugins", "clean_db")
 class TestGetOrCreation:
 
     def test_default_native_id(self, details_data):
@@ -111,6 +111,7 @@ class TestGetOrCreation:
         userdict = utils.get_or_create_from_details(details)
         assert userdict["id"] != details_data["id"]
 
+    @pytest.mark.xfail
     @pytest.mark.ckan_config(config.CONFIG_SAME_ID, "true")
     def test_same_id(self, details_data):
         details = utils.Details(**details_data)

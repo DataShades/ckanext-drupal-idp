@@ -66,15 +66,20 @@ class DrupalIdpPlugin(plugins.SingletonPlugin):
             log.debug("Skip static route")
             return
 
+        kick_missing = tk.check_ckan_version("2.10") and config.kick_missing_session()
         cookie_sid = tk.request.cookies.get(utils.session_cookie_name())
         if not cookie_sid:
             log.debug("No session cookie found")
+            if kick_missing:
+                tk.logout_user()
+            return
+
             return
 
         sid = utils.decode_sid(cookie_sid)
         uid = utils.sid_into_uid(sid)
         if not uid:
-            if tk.check_ckan_version("2.10") and config.kick_missing_session():
+            if kick_missing:
                 tk.logout_user()
             return
 

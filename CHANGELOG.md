@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Bug Fixes
 
+- do not kick api-users ([8dc5223](https://github.com/DataShades/ckanext-drupal-idp/commit/8dc52232f45dd1eb3ff9a3811796c03e27b5dd5f) by Sergey Motornyuk).
 - kick_missing_sessin handles missing cookies ([36f6f83](https://github.com/DataShades/ckanext-drupal-idp/commit/36f6f83beaeb8f2c36fef1b1f6d36b14c4d0f842) by Sergey Motornyuk).
 - deleted user remains deleted during initialization ([b2b69f2](https://github.com/DataShades/ckanext-drupal-idp/commit/b2b69f26d102e5b6ba31265a2515116bd5fc48b5) by Sergey Motornyuk).
 - user.name cannot be updated during synchronization ([9d52f21](https://github.com/DataShades/ckanext-drupal-idp/commit/9d52f21f428d3d9e09d76f12662b956d0267aa90) by Sergey Motornyuk).

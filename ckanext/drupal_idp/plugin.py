@@ -3,6 +3,7 @@ import logging
 from ckan import model
 import ckan.plugins as plugins
 import ckan.plugins.toolkit as tk
+from ckan.views import _get_user_for_apitoken
 
 from ckanext.drupal_idp.logic import action
 from ckanext.drupal_idp.logic import auth
@@ -66,7 +67,12 @@ class DrupalIdpPlugin(plugins.SingletonPlugin):
             log.debug("Skip static route")
             return
 
+        api_user = _get_user_for_apitoken()
+        if api_user:
+            return
+
         kick_missing = tk.check_ckan_version("2.10") and config.kick_missing_session()
+
         cookie_sid = tk.request.cookies.get(utils.session_cookie_name())
         if not cookie_sid:
             log.debug("No session cookie found")

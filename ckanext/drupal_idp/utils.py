@@ -6,7 +6,7 @@ import hashlib
 import logging
 import secrets
 from typing import Any, Dict, List, Optional, TypedDict
-from urllib.parse import unquote
+from urllib.parse import unquote, urlparse
 
 import six
 from typing_extensions import NotRequired
@@ -64,7 +64,10 @@ def _make_password():
 def _get_host() -> str:
     host = config.static_host()
     if not host:
-        host = tk.request.environ["HTTP_HOST"].split(":")[0]
+        if tk.request:
+            host = tk.request.environ["HTTP_HOST"].split(":")[0]
+        else:
+            host = urlparse(tk.config["ckan.site_url"]).hostname
     return host
 
 

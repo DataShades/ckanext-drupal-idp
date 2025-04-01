@@ -1,6 +1,7 @@
 import click
 
 import ckan.model as model
+from . import utils
 
 
 def get_commands():
@@ -32,3 +33,9 @@ def list():
         click.echo(f"\tRoles: {', '.join(extras['roles'])}")
         click.echo(f"\tEmail: {extras['email']}")
         click.echo()
+
+
+@user.command()
+def cookie_name():
+    """Print expected name of the authentication cookie."""
+    click.echo(utils.session_cookie_name())

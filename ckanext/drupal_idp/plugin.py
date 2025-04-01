@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import logging
+from typing import Any
 
 from ckan import model
 import ckan.plugins as plugins
@@ -11,54 +14,27 @@ from ckanext.drupal_idp import helpers, utils, drupal, cli, views, config
 
 log = logging.getLogger(__name__)
 
-try:
-    config_declarations = tk.blanket.config_declarations
-except AttributeError:
 
-    def config_declarations(cls):
-        return cls
-
-
-@config_declarations
+@tk.blanket.actions(action.get_actions)
+@tk.blanket.auth_functions(auth.get_auth_functions)
+@tk.blanket.helpers(helpers.get_helpers)
+@tk.blanket.blueprints(views.get_blueprints)
+@tk.blanket.cli(cli.get_commands)
+@tk.blanket.config_declarations
 class DrupalIdpPlugin(plugins.SingletonPlugin):
     plugins.implements(plugins.IAuthenticator, inherit=True)
     plugins.implements(plugins.IConfigurer)
-    plugins.implements(plugins.ITemplateHelpers)
-    plugins.implements(plugins.IActions)
-    plugins.implements(plugins.IAuthFunctions)
-    plugins.implements(plugins.IClick)
-    plugins.implements(plugins.IBlueprint)
-
-    def get_blueprint(self):
-        return views.get_blueprints()
-
-    # IClick
-
-    def get_commands(self):
-        return cli.get_commands()
-
-    # IActions
-
-    def get_actions(self):
-        return action.get_actions()
-
-    # IAuthFunctions
-
-    def get_auth_functions(self):
-        return auth.get_auth_functions()
-
-    # ITemplateHelpers
-
-    def get_helpers(self):
-        return helpers.get_helpers()
 
     # IAuthenticator
 
     def identify(self):
         """This does drupal authorization.
-        The drupal session contains the drupal id of the logged in user.
-        We need to convert this to represent the ckan user."""
 
+        The drupal session contains the drupal id of the logged in user.
+        We need to convert this to represent the ckan user.
+        """
+
+        # skip routes with static content as they never require authentication
         static = {
             ("static", "index"),
             ("webassets", "index"),
@@ -67,12 +43,18 @@ class DrupalIdpPlugin(plugins.SingletonPlugin):
             log.debug("Skip static route")
             return
 
+        # skip authentication for user set via API token. Most likely this is
+        # XLoader request and we don't want it to authenticate via drupal
         api_user = _get_user_for_apitoken()
         if api_user:
             return
 
+        # this option controls whether the current user is logged out
+        # automatically if drupal has no active session for him
         kick_missing = tk.check_ckan_version("2.10") and config.kick_missing_session()
 
+        # get the value of drupal's session cookie. The name of the cookie is
+        # based on the application hostname
         cookie_sid = tk.request.cookies.get(utils.session_cookie_name())
         if not cookie_sid:
             log.debug("No session cookie found")
@@ -80,8 +62,7 @@ class DrupalIdpPlugin(plugins.SingletonPlugin):
                 tk.logout_user()
             return
 
-            return
-
+        # if session cookkie detected, pull user's UID from drupal's database
         sid = utils.decode_sid(cookie_sid)
         uid = utils.sid_into_uid(sid)
         if not uid:
@@ -89,6 +70,7 @@ class DrupalIdpPlugin(plugins.SingletonPlugin):
                 tk.logout_user()
             return
 
+        # If UID exists, create or update user's details on CKAN side
         try:
             user = tk.get_action("drupal_idp_user_initialize")(
                 {"ignore_auth": True}, {"id": uid}
@@ -99,6 +81,11 @@ class DrupalIdpPlugin(plugins.SingletonPlugin):
                 )
 
         except tk.ObjectNotFound:
+            # that can happen when drupal's database in a mess and session
+            # table contains identifiers on non-existing users. That's a data
+            # integrity error, and it may have sense to logout user from CKAN
+            # in such situation. But this can happen only when everything is
+            # broken, so doing nothing is also an appropriate strategy
             log.warning("No drupal user found for UID %s", uid)
             return
 
@@ -113,7 +100,7 @@ class DrupalIdpPlugin(plugins.SingletonPlugin):
 
     # IConfigurer
 
-    def update_config(self, config_):
+    def update_config(self, config_: Any):
         # If DB config is missing, the following line will raise
         # CkaneConfigurationException and won't allow server to start
         drupal.db_url()

@@ -6,9 +6,17 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- insertion marker -->
-## Unreleased
+## [v0.5.0](https://github.com/DataShades/ckanext-drupal-idp/releases/tag/v0.5.0) - 2025-04-01
 
-<small>[Compare with latest](https://github.com/DataShades/ckanext-drupal-idp/compare/v0.4.5...HEAD)</small>
+<small>[Compare with v0.4.6](https://github.com/DataShades/ckanext-drupal-idp/compare/v0.4.6...v0.5.0)</small>
+
+### Features
+
+- drop CKAN pre-v2.10 support ([e9bc37e](https://github.com/DataShades/ckanext-drupal-idp/commit/e9bc37e479d0ec80d0d32fb838722a2b48affe44) by Sergey Motornyuk).
+
+## [v0.4.6](https://github.com/DataShades/ckanext-drupal-idp/releases/tag/v0.4.6) - 2024-10-17
+
+<small>[Compare with v0.4.5](https://github.com/DataShades/ckanext-drupal-idp/compare/v0.4.5...v0.4.6)</small>
 
 ### Features
 
@@ -24,7 +32,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - user.name cannot be updated during synchronization ([9d52f21](https://github.com/DataShades/ckanext-drupal-idp/commit/9d52f21f428d3d9e09d76f12662b956d0267aa90) by Sergey Motornyuk).
 - synchronize fails when plugin extras is missing from user object ([fc87940](https://github.com/DataShades/ckanext-drupal-idp/commit/fc879400a00a71ed498100768112680840404f3d) by Sergey Motornyuk).
 
-<!-- insertion marker -->
 ## [v0.4.5](https://github.com/DataShades/ckanext-drupal-idp/releases/tag/v0.4.5) - 2023-01-25
 
 <small>[Compare with v0.3.5](https://github.com/DataShades/ckanext-drupal-idp/compare/v0.3.5...v0.4.5)</small>

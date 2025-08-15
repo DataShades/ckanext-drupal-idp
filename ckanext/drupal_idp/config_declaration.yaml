@@ -62,3 +62,8 @@ groups:
         type: bool
         description: |
           Allow user details synchronization
+
+      - key: ckanext.drupal_idp.keep_destination
+        type: bool
+        description: |
+          Set destination to the page that triggered 403 response.

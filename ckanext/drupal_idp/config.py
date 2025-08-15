@@ -25,6 +25,13 @@ DEFAULT_KICK_MISSING_SESSION = False
 DEFAULT_PUBLIC_PATH = "/sites/default/files/"
 DEFAULT_SKIP_STATIC = False
 
+CONFIG_KEEP_DESTINATION = "ckanext.drupal_idp.keep_destination"
+DEFAULT_KEEP_DESTINATION = False
+
+def keep_destination() -> bool:
+    return tk.asbool(
+        tk.config.get(CONFIG_KEEP_DESTINATION, DEFAULT_KEEP_DESTINATION)
+    )
 
 def kick_missing_session() -> bool:
     return tk.asbool(
